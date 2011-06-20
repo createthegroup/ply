@@ -155,5 +155,5 @@ Ply.core = (function ($) {
 
     };
 
-// Alias `jQuery` in module scope.
+// Alias `jQuery` as `$` in module scope.
 })(jQuery);
