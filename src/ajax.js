@@ -1,6 +1,8 @@
 /*global Ply, jQuery */
 /*jshint eqeqeq: true, curly: true, white: true */
 
+// Define the Ajax module.
+
 Ply.ajax = (function ($) {
 
     return {

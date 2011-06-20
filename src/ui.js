@@ -36,7 +36,9 @@ Ply.ui = (function ($) {
 
             this.__bindPartials = function () {
                 for (var id in self.__partials) {
-                    if (self.__partials.hasOwnProperty(id) && self.objects[id] && self.objects[id].length) {
+                    if (self.__partials.hasOwnProperty(id) &&
+                        self.objects[id] &&
+                        self.objects[id].length) {
                         self.partials[id] = Ply.ui.register(self.__partials[id], {
                             view: self.objects[id],
                             delegate: self
@@ -80,7 +82,8 @@ Ply.ui = (function ($) {
             base.read = Ply.read[name];
 
             this.fn[name] = function (view, options, data, delegate) {
-                return instantiateView.call($.extend({}, self.fn[name].impl), name, view, options, data, delegate);
+                return instantiateView.call($.extend({}, self.fn[name].impl),
+                                            name, view, options, data, delegate);
             };
 
             this.fn[name].impl = $.extend({}, base, prototype);
@@ -117,7 +120,8 @@ Ply.ui = (function ($) {
 
             options = options || {};
 
-            if (Ply.config.ui.onRegister && typeof Ply.config.ui.onRegister === 'function') {
+            if (Ply.config.ui.onRegister &&
+                typeof Ply.config.ui.onRegister === 'function') {
                 Ply.config.ui.onRegister(name, options);
             }
 
@@ -130,12 +134,12 @@ Ply.ui = (function ($) {
             return this.start(name, options);
         },
 
-        start: function (name, options) {
+        start: function (name, o) {
 
             Ply.core.log('trying start: ' + name, 'info');
 
             try {
-                return this.fn[name]($(options.view), options.options, options.data, options.delegate);
+                return this.fn[name]($(o.view), o.options, o.data, o.delegate);
             }
             catch (ex) {
                 Ply.core.log(name + ' failed to start.');
