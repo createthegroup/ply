@@ -1,6 +1,18 @@
 /*global jQuery */
 /*jshint eqeqeq: true, curly: true, white: true */
 
+// **Ply** is a lightweight JavaScript framework for creating
+// reusable UI components and managing application logic. It
+// aims to eliminate boilerplate code, create a consistent interface,
+// and provide common patterns for code organization and re-use.
+
+// Ply is not an MVC framework and doesn't aim to compete
+// with [Backbone.js](http://documentcloud.github.com/backbone/) or [SproutCore](http://www.sproutcore.com/). Instead, it is intended for users
+// who need to maintain logic on the server and are looking for a better
+// option for code re-use and organization.
+
+// This file comprises the Core module.
+
 // Declare global namespace and assign version number.
 
 var Ply = {
@@ -11,7 +23,7 @@ var Ply = {
 
 Ply.core = (function ($) {
 
-    // Create private variables. Listeners is an associative array holding arrays of
+    // Create private variables. `listeners` is an associative array holding arrays of
     // notification listeners keyed on the notification name.
     var listeners = {},
         debug     = false;
@@ -42,18 +54,22 @@ Ply.core = (function ($) {
 
         // Listens for a particular notification or set of notifications.
         // Clients should pass in a handler function and themselves as arguments.
+        // When the handler function is called, it will be applied to the `listener`'s
+        // scope, ensuring that `this` refers to what the client expects.
         listen: function (notification, handler, listener) {
 
-            // Cache the listeners
+            // Cache the notification's listeners.
             var list  = listeners[notification],
-                // Split the notification on whitespace.
+                // Split the notification on whitespace. Clients can listen to
+                // multiple notifications by passing in a string with the notification
+                // names split by whitespace.
                 notes = notification.split(/\s/),
                 // Create loop variables.
                 len   = notes.length,
                 i     = 0;
 
-            // If the notification name is separated by whitespace,
-            // listen on each particular notification.
+            // If the notification name contains whitespace,
+            // listen on each particular notification (segment).
             if (len > 1) {
                 for (; i < len; i++) {
                     this.listen(notes[i], handler, listener);
@@ -68,7 +84,7 @@ Ply.core = (function ($) {
                 listeners[notification] = [];
             }
 
-            // Add listener to the list with handler function.
+            // Add the listener and handler function to the notifications array.
             list.push({
                 handler: handler,
                 listener: listener
@@ -76,7 +92,7 @@ Ply.core = (function ($) {
 
         },
 
-        // Lightweight logging wrapper around console.log. Useful less so
+        // Lightweight logging wrapper around `console`. Useful less so
         // for debugging than for posting notices of interest.
         log: function (msg, type) {
 
@@ -155,5 +171,5 @@ Ply.core = (function ($) {
 
     };
 
-// Alias `jQuery` as `$` in module scope.
+// Alias `jQuery` to `$` in module scope.
 })(jQuery);

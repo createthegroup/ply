@@ -17,6 +17,9 @@ a {
 p {
   margin: 0 0 15px 0;
 }
+a {
+    color: inherit !important;
+}
 h1, h2, h3, h4, h5, h6 {
   margin: 0px 0 15px 0;
 }
@@ -75,6 +78,12 @@ h1, h2, h3, h4, h5, h6 {
         }
         #jump_page .source:first-child {
         }
+
+/* Hide section 1 (contains JSHint directives) */
+#section-1 {
+    display: none;
+}
+
 table td {
   border: 0;
   outline: 0;
