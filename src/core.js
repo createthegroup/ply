@@ -5,7 +5,7 @@ var Ply = {
     VERSION: '0.1.0'
 };
 
-Ply.core = (function () {
+Ply.core = (function ($) {
 
     var listeners = {},
         debug     = false;
@@ -14,15 +14,16 @@ Ply.core = (function () {
 
         notify: function (note, sender, data) {
 
-            var i   = 0,
-                len = listeners[note].length;
+            var list = listeners[note],
+                i    = 0,
+                len  = listeners[note].length;
 
-            if (!listeners[note]) {
+            if (!list) {
                 listeners[note] = [];
             }
 
             for (; i < len; i++) {
-                listeners[note][i].handler.apply(listeners[note][i].listener, [note, sender, data]);
+                list[i].handler.apply(list[i].listener, [note, sender, data]);
             }
 
             return;
@@ -31,10 +32,11 @@ Ply.core = (function () {
         listen: function (notification, handler, listener) {
 
             var notes = notification.split(/\s/),
+                list  = listeners[notification],
                 i     = 0,
-                len   = notes.length;
+                len   = notes.length,;
 
-            if (notes.length > 1) {
+            if (len > 1) {
                 for (; i < len; i++) {
                     this.listen(notes[i], handler, listener);
                 }
@@ -42,11 +44,11 @@ Ply.core = (function () {
                 return;
             }
 
-            if (!listeners[notification]) {
+            if (!list) {
                 listeners[notification] = [];
             }
 
-            listeners[notification].push({
+            list.push({
                 handler: handler,
                 listener: listener
             });
@@ -82,7 +84,7 @@ Ply.core = (function () {
 
         error: function (ex, sev) {
 
-            jQuery.post(Ply.config.core.errorLoggingUrl, {
+            $.post(Ply.config.core.errorLoggingUrl, {
                 name: ex.name,
                 description: ex.description,
                 message: ex.message,
@@ -115,4 +117,4 @@ Ply.core = (function () {
 
     };
 
-})();
+})(jQuery);
