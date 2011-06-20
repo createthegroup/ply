@@ -16,7 +16,7 @@ Ply.core = (function ($) {
 
             var list = listeners[note],
                 i    = 0,
-                len  = listeners[note].length;
+                len  = list.length;
 
             if (!list) {
                 listeners[note] = [];
@@ -31,10 +31,10 @@ Ply.core = (function ($) {
 
         listen: function (notification, handler, listener) {
 
-            var notes = notification.split(/\s/),
-                list  = listeners[notification],
-                i     = 0,
-                len   = notes.length,;
+            var list  = listeners[notification],
+                notes = notification.split(/\s/),
+                len   = notes.length,
+                i     = 0;
 
             if (len > 1) {
                 for (; i < len; i++) {
