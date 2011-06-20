@@ -80,7 +80,7 @@ h1, h2, h3, h4, h5, h6 {
         }
 
 /* Hide section 1 (contains JSHint directives) */
-#section-1 {
+.cm {
     display: none;
 }
 
