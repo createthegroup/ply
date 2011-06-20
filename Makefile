@@ -9,7 +9,6 @@ CLOSUREFILE = $(CLOSUREDIR)/compiler.jar
 
 all:
 	$(MAKE) build;
-	$(MAKE) clean;
 
 combine:
 	cat \
