@@ -1,7 +1,9 @@
 /*global jQuery */
 /*jshint eqeqeq: true, curly: true, white: true */
 
-var Ply = {};
+var Ply = {
+    VERSION: '0.1.0'
+};
 
 Ply.core = (function () {
 
