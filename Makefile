@@ -29,7 +29,9 @@ minify:
 	java -jar $(CLOSUREFILE) --js_output_file=$(MINIFIED_FILE) --js=$(COMBINED_FILE); rm -rf $(COMBINED_FILE)
 
 docs:
+	if test -e $(DOCSDIR)/docco.css; then mv $(DOCSDIR)/docco.css $(DOCSDIR)/_docco.css; fi
 	docco $(SRCDIR)/*
+	if test -e $(DOCSDIR)/_docco.css; then mv $(DOCSDIR)/_docco.css $(DOCSDIR)/docco.css; fi
 
 build:
 	$(MAKE) combine;
@@ -44,5 +46,5 @@ build-remove:
 	rm -rf $(BUILDDIR);
 
 clean:
-	rm -rf $(DOCSDIR);
+	rm -rf $(DOCSDIR)/*.html;
 	rm -f $(MINIFIED_FILE);
