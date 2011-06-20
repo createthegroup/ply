@@ -14,11 +14,14 @@ Ply.core = (function () {
 
         notify: function (note, sender, data) {
 
+            var i   = 0,
+                len = listeners[note].length;
+
             if (!listeners[note]) {
                 listeners[note] = [];
             }
 
-            for (var i = 0, l = listeners[note].length; i < l; i++) {
+            for (; i < len; i++) {
                 listeners[note][i].handler.apply(listeners[note][i].listener, [note, sender, data]);
             }
 
