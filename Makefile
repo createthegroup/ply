@@ -31,4 +31,5 @@ build-update:
 	cd $(CLOSUREDIR); wget -q $(CLOSUREURL) -O file.zip; tar -xf file.zip; rm -rf $(CLOSUREDIR)/file.zip
 
 clean:
-	rm -rf $(BUILDDIR);
+	rm -rf docs/
+	rm -f ply.min.js
