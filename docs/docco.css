@@ -1,10 +1,11 @@
 /*--------------------- Layout and Typography ----------------------------*/
 body {
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
-  font-size: 15px;
-  line-height: 22px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
   color: #252519;
   margin: 0; padding: 0;
+  -webkit-text-stroke: 1px transparent;
 }
 a {
   color: #261a3b;
@@ -114,9 +115,10 @@ table td {
     border-left: 1px solid #e5e5ee;
   }
     pre, tt, code {
-      font-size: 12px; line-height: 18px;
-      font-family: Monaco, Consolas, "Lucida Console", monospace;
+      font-size: 13px; line-height: 18px;
+      font-family: Monaco, Courier, monospace;
       margin: 0; padding: 0;
+      -webkit-text-stroke: 0;
     }
 
 
