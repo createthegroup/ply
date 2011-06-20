@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 var Ply = {
-    VERSION: '0.1.0'
+    VERSION: '0.1.1'
 };
 
 // Define `core` module.

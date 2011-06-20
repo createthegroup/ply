@@ -1,9 +1,9 @@
-/*global jQuery */
+/*global Ply, jQuery */
 /*jshint eqeqeq: true, curly: true, white: true */
 
-(function ($) {
+Ply.config = (function ($) {
 
-    Ply.config = {
+    return {
 
         core: {
             errorLoggingUrl: '/error/logclienterror'
