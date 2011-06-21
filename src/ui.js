@@ -6,19 +6,33 @@
 
 Ply.ui = (function ($) {
 
+    // Create a private function for instantiating views, which is called when a view is
+    // started. The function expects several arguments &mdash; the name of the view,
+    // the jQuery object tied to the view, the options and data objects,
+    // and a delegate (or `undefined`).
     function instantiateView(name, view, options, data, delegate) {
 
+        // Alias `this` for inner functions.
         var self = this;
 
+        // Assign the view's name to its `name` propery.
+        this.name = name;
+
+        // Assign the view to its `view` property. This should not be `undefined`.
         this.view = view;
 
+        // Assign the delegate to its `delegate` property; may be `undefined`. It is up to
+        // the respective view to decide on the interface for its delegation.
         this.delegate = delegate;
 
+        // Merge `Ply.config.ui.defaults`, the `opts` property of the view
+        // and the options passed in to this function &mdash; which gets passed from the call
+        // to `Ply.ui.register` with an options object.
         this.opts = $.extend({}, Ply.config.ui.defaults, this.opts, options);
 
+        // Merge the `data` property of the view, with the data passed to this function
+        // from `Ply.ui.register`. Save this in `this.data`.
         this.data = $.extend({}, this.data, data);
-
-        this.name = name;
 
         if (this.__objects) {
             this.objects = {};
