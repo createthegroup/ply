@@ -49,6 +49,8 @@ build-remove:
 update-readme:
 	sed "s/`grep "Version\*\*: .*" README.md -o | cut -d '<' -f1 | cut -d ' ' -f2`/`grep "VERSION: '.*'" src/core.js -o | cut -d "'" -f 2`/g" README.md > _README.md
 	mv -f _README.md README.md
+	sed "s/`grep "Updated\*\*: .*" README.md -o | cut -d ' ' -f2-10`/`date +"%B %d, %Y"`/g" README.md > _README.md
+	mv -f _README.md README.md
 
 clean:
 	rm -rf $(DOCSDIR)/*.html;
