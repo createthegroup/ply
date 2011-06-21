@@ -45,7 +45,7 @@ Ply.core = (function ($) {
 
             // Loop over listeners and notify each.
             for (; i < len; i++) {
-                list[i].handler.apply(list[i].listener, [note, sender, data]);
+                list[i].handler.call(list[i].listener, note, sender, data);
             }
 
         },
