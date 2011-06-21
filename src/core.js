@@ -15,8 +15,8 @@
 
 // Declare global namespace and assign version number.
 
-var Ply = {
-    VERSION: '0.1.4'
+window.Ply = {
+    VERSION: '0.1.5'
 };
 
 // Define `core` module.
@@ -128,23 +128,22 @@ Ply.core = (function ($) {
         },
 
         // ### Error
-        // Error handler to catch all JavaScript errors. We post
-        // all error names along with their stack trace and description
-        // to a url provided by the client. Configure the URL in `Ply.config.coreerrorLoggingUrl`.
+        // Method to catch JavaScript errors. All Ply methods are run in a `try/catch` block,
+        // with exceptions being passed to this method.
         error: function (ex, sev) {
 
-            $.post(Ply.config.core.errorLoggingUrl, {
-                name: ex.name,
-                description: ex.description,
-                message: ex.message,
-                lineNumber: ex.lineNumber,
-                stackTrace: ex.stack
-            });
+            // If an `onError` callback function is defined in `Ply.config.core`, call it.
+            // Note that implementing this callback is highly recommended. See the sample implementation
+            // in `Ply.config`.
+            if (Ply.config.core.onError && typeof Ply.config.core.onError === 'function') {
+                // Pass in the exception and the severity to the handler.
+                Ply.config.core.onError(ex, sev);
 
-            // Inform the user if error is fatal.
-            if (sev > 1) {
-                alert('An error has occurred. Please refresh your browser');
+                return;
             }
+
+            // If no error handler is defined, simply throw the error.
+            throw ex;
 
         },
 

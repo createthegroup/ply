@@ -10,10 +10,27 @@ Ply.config = (function ($) {
 
         // ## Core
         core: {
-            // ### Error Logging URL
-            // The URL to log client errors to. All JavaScript errors in
-            // views are caught and logged to this URL. See `core` for more.
-            errorLoggingUrl: '/error/logclienterror'
+            // ### Error callback
+            // This function will get called for each JavaScript error. It receives
+            // the exception and severity.
+            onError: function (ex, sev) {
+
+                // #### Example
+                // Post the exception information including location and stack trace
+                // to a logging server.
+                $.post('/error/logclienterror', {
+                    name: ex.name,
+                    description: ex.description,
+                    message: ex.message,
+                    lineNumber: ex.lineNumber,
+                    stackTrace: ex.stack
+                });
+
+                // If the error is fatal, inform the user.
+                if (sev > 1) {
+                    alert('An error has occurred. Please refresh your browser');
+                }
+            }
         },
 
         // ## Read
