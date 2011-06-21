@@ -41,7 +41,7 @@ build:
 build-update:
 	$(MAKE) build-remove;
 	mkdir $(BUILDDIR) $(CLOSUREDIR);
-	cd $(CLOSUREDIR); wget -q $(CLOSUREURL) -O file.zip; tar -xf file.zip; rm -rf $(CLOSUREDIR)/file.zip
+	cd $(CLOSUREDIR); curl -L $(CLOSUREURL) > file.zip; tar -xf file.zip; rm -rf $(CLOSUREDIR)/file.zip
 
 build-remove:
 	rm -rf $(BUILDDIR);
