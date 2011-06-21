@@ -187,8 +187,9 @@ Ply.ui = (function ($) {
         // which properties are passed along.
         register: function (name, options) {
 
-            // Default empty object if options is not defined.
-            options = options || {};
+            // Default empty object if options is not defined, or is not
+            // an object.
+            options = options && typeof options === 'object' ? options : {};
 
             // #### Register callback
             // An optional callback is available for client use
@@ -229,8 +230,8 @@ Ply.ui = (function ($) {
             // Log to the console the view's name.
             Ply.core.log('trying start: ' + name, 'info');
 
-            // Wrap the initialiazation in a try/catch, and log any errors through `Ply.core`'s
-            // error logging mechanism. If debug mode is enabled, allow the error to bubble.
+            // Wrap the initialiazation in a try/catch block, and log any errors
+            // through `Ply.core`'s error logging mechanism.
             try {
                 return this.fn[name]($(o.view), o.options, o.data, o.delegate);
             }
@@ -238,7 +239,8 @@ Ply.ui = (function ($) {
                 Ply.core.log(name + ' failed to start.');
                 Ply.core.error(ex, 1);
 
-                if (Ply.core.debugOn) {
+                 // If debug mode is enabled, allow the error to bubble.
+                 if (Ply.core.debugOn) {
                     throw ex;
                 }
             }
@@ -249,3 +251,5 @@ Ply.ui = (function ($) {
 
 // Alias `jQuery` to `$` in the module's scope.
 })(jQuery);
+
+// &#8618; [Config](config.html)
