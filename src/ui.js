@@ -34,28 +34,55 @@ Ply.ui = (function ($) {
         // from `Ply.ui.register`. Save this in `this.data`.
         this.data = $.extend({}, this.data, data);
 
+        // If this.__objects is defined, autogenerate the objects.
         if (this.__objects) {
+            // Create an empty objects hash to store the objects.
             this.objects = {};
 
+            // Create a function for binding objects. A function is created so
+            // the view or clients can call `__bindObjects` on the view, if the
+            // DOM gets updated. Note that for event handling, it's better to use
+            // event delegation (using jQuery's `delegate` method), than to rebind
+            // the objects and attach handlers.
             this.__bindObjects = function () {
+                // Iterate over the own properties of `this.__objects`.
                 for (var id in self.__objects) {
                     if (self.__objects.hasOwnProperty(id)) {
+                        // Attach the result of calling `this.view.find` with
+                        // the provided selector to the respective property of
+                        //  `this.objects`.
+
+                        // We intentionally use `this.view.find` and not a global
+                        // jQuery search to enforce good encapsulation, avoid clobbering
+                        // selectors, and optimize performance.
                         self.objects[id] = self.view.find(self.__objects[id]);
                     }
                 }
             };
 
+            // Invoke `this.__bindObjects`.
             this.__bindObjects();
         }
 
+        // If `this.__partials` is defined, autogenerate the partials.
         if (this.__partials) {
+            // Create empty hash to store partials.
             this.partials = {};
 
+            // Declare function for binding partials. Function is created for same purposes
+            // as `this.__bindObjects`.
             this.__bindPartials = function () {
+                // Iterate over the own properties of `this.__partials` which have
+                // corresponding objects which matched at least one element. Ensures
+                // that partials are given a proper view.
                 for (var id in self.__partials) {
                     if (self.__partials.hasOwnProperty(id) &&
                         self.objects[id] &&
                         self.objects[id].length) {
+
+                        // Assign to the respective property of `this.partials` the result of
+                        // registering a view with the given name, view, and defining view as
+                        // its delegate.
                         self.partials[id] = Ply.ui.register(self.__partials[id], {
                             view: self.objects[id],
                             delegate: self
@@ -64,40 +91,59 @@ Ply.ui = (function ($) {
                 }
             };
 
+            // Invoke `this.__bindPartials`
             this.__bindPartials();
         }
 
+        // If `this.__notifications` is defined.
         if (this.__notifications) {
+            // Iterate over the own properties of `this.__notifications`. Note that we do not
+            // create and immediately invoke a function here since notifications never need to
+            // be re-bound.
             for (var note in this.__notifications) {
                 if (this.__notifications.hasOwnProperty(note)) {
+                    // Listen to the respective notification using the handler string to
+                    // reference the given method of the view.
                     Ply.core.listen(note, this[this.__notifications[note]], this);
                 }
             }
         }
 
+        // If an `__init` method is defined, invoke it.
         if (this.__init && typeof this.__init === 'function') {
             this.__init();
         }
 
+        // Return the view.
         return this;
     }
 
+    // Return the public methods and properties to be accessible on `Ply.ui`.
     return {
 
+        // The `fn` property holds is where each view gets created. Views are globally
+        // accesible at `Ply.ui.fn[name]`.
         fn: {},
 
+        // This is the most common method used on `Ply.ui`. It is used for defining
+        // views; expects a name and object prototype.
         define: function (name, prototype) {
 
+            // Alias `this` for inner functions.
             var self = this,
+                // Create a `base` object, by making a deep copy of `Ply.config.ui.base`.
                 base = $.extend({}, Ply.config.ui.base || {});
 
+            // If no read method has been defined, create one using the `__url` property
+            // of the prototype.
             if (!Ply.read[name]) {
                 Ply.read._create(name, prototype.__url);
             }
 
-            // Alias Ply.read[name] to this.read
-            base.read = Ply.read[name];
+            // Alias `Ply.read[name]` to `this.__read`.
+            base.__read = Ply.read[name];
 
+            // Save an `instanteView` call to `Ply.ui.fn[name]`.
             this.fn[name] = function (view, options, data, delegate) {
                 return instantiateView.call($.extend({}, self.fn[name].impl),
                                             name, view, options, data, delegate);
