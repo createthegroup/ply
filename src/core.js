@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 var Ply = {
-    VERSION: '0.1.1'
+    VERSION: '0.1.2'
 };
 
 // Define `core` module.
@@ -174,4 +174,4 @@ Ply.core = (function ($) {
 // Alias `jQuery` to `$` in module scope.
 })(jQuery);
 
-// &#8618; [Ajax](ajax.html).
+// &#8618; [Ajax](ajax.html)

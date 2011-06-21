@@ -77,4 +77,4 @@ Ply.ajax = (function ($) {
 // Alias `jQuery` to `$` for the module's scope.
 })(jQuery);
 
-// &#8618; [Read](read.html).
+// &#8618; [Read](read.html)

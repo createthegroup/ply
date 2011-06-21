@@ -50,4 +50,4 @@ Ply.read = (function () {
 
 })();
 
-// &#8618; [UI](ui.html).
+// &#8618; [UI](ui.html)

@@ -1,6 +1,9 @@
 /*global Ply, jQuery */
 /*jshint eqeqeq: true, curly: true, white: true */
 
+// The UI module provides most of the user-facing functionality
+// for Ply.
+
 Ply.ui = (function ($) {
 
     function instantiateView(name, view, options, data, delegate) {
@@ -87,31 +90,6 @@ Ply.ui = (function ($) {
             };
 
             this.fn[name].impl = $.extend({}, base, prototype);
-
-            return;
-        },
-
-        create: function (name, options) {
-
-            var self = this,
-                args = Array.prototype.slice.call(arguments);
-
-            options = args[args.length - 1];
-
-            // Trim the first and last arguments (name and options)
-            args = args.slice(1, args.length - 1);
-
-            // Add callback to arguments
-            args.push(function (response) {
-
-                options.view = response;
-
-                self.register(name, options);
-
-            });
-
-            // Call the API method with the registration code as the callback
-            Ply.read[name].apply(this, args);
 
             return;
         },
