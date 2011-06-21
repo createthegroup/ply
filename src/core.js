@@ -174,4 +174,4 @@ Ply.core = (function ($) {
 // Alias `jQuery` to `$` in module scope.
 })(jQuery);
 
-// Read about the [Ajax](ajax.html) module next.
+// &#8618; [Ajax](ajax.html).

@@ -28,6 +28,8 @@ Ply.ajax = (function ($) {
 
             // Surround ajax request in a try/catch block to catch any possible errors.
             try {
+                // We return the result of calling `$.ajax`, an XHR object, so clients
+                // can call XHR methods on the object, e.g. `abort()`.
                 return $.ajax({
                     type: type,
                     url: url,
@@ -75,4 +77,4 @@ Ply.ajax = (function ($) {
 // Alias `jQuery` to `$` for the module's scope.
 })(jQuery);
 
-// Read about the [Read](read.html) module next.
+// &#8618; [Read](read.html).
