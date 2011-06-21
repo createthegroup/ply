@@ -37,19 +37,14 @@ Ply.core = (function ($) {
         // and optional data as arguments.
         notify: function (note, sender, data) {
 
-            // Cache listeners array.
-            var list = listeners[note],
+            // Cache listeners array or create a new array, assign, and cache it.
+            var list = listeners[note] || (listeners[note] = []),
                 // Create loop variables.
                 i    = 0,
-                len;
-
-            // Create an empty array of listeners if none exists.
-            if (!list) {
-                list = listeners[note] = [];
-            }
+                len  = list.length;
 
             // Loop over listeners and notify each.
-            for (len = list.length; i < len; i++) {
+            for (; i < len; i++) {
                 list[i].handler.apply(list[i].listener, [note, sender, data]);
             }
 
