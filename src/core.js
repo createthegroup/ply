@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.1.5'
+    VERSION: '0.1.6'
 };
 
 // Define `core` module.
@@ -41,15 +41,15 @@ Ply.core = (function ($) {
             var list = listeners[note],
                 // Create loop variables.
                 i    = 0,
-                len  = list.length;
+                len;
 
             // Create an empty array of listeners if none exists.
             if (!list) {
-                listeners[note] = [];
+                list = listeners[note] = [];
             }
 
             // Loop over listeners and notify each.
-            for (; i < len; i++) {
+            for (len = list.length; i < len; i++) {
                 list[i].handler.apply(list[i].listener, [note, sender, data]);
             }
 
@@ -62,8 +62,9 @@ Ply.core = (function ($) {
         // scope, ensuring that `this` refers to what the client expects.
         listen: function (notification, handler, listener) {
 
-            // Cache the notification's listeners.
-            var list  = listeners[notification],
+            // Cache the notification's listeners if it exists or create and cache
+            // a new array otherwise.
+            var list  = listeners[notification] || (listeners[notification] = []),
                 // Split the notification on whitespace. Clients can listen to
                 // multiple notifications by passing in a string with the notification
                 // names split by whitespace.
@@ -82,18 +83,11 @@ Ply.core = (function ($) {
                 return;
             }
 
-            // If there is no listeners array for the notification,
-            // create a new one.
-            if (!list) {
-                listeners[notification] = [];
-            }
-
             // Add the listener and handler function to the notifications array.
             list.push({
                 handler: handler,
                 listener: listener
             });
-
         },
 
         // ### Log
