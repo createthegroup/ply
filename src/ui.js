@@ -6,35 +6,45 @@
 
 Ply.ui = (function ($) {
 
-    // Create a private function for instantiating views, which is called when a view is
-    // started. The function expects several arguments &mdash; the name of the view,
+    // ## Private Functions/Variables
+
+    // ### Instantiate View
+    // This is a private function which is called when a view is started.
+    // The function expects several arguments &mdash; the name of the view,
     // the jQuery object tied to the view, the options and data objects,
-    // and a delegate (or `undefined`).
+    // and a delegate. The last three may be undefined, but `name` and `view`
+    // are required.
     function instantiateView(name, view, options, data, delegate) {
 
         // Alias `this` for inner functions.
         var self = this;
 
+        // #### Name
         // Assign the view's name to its `name` propery.
         this.name = name;
 
+        // #### View
         // Assign the view to its `view` property. This should not be `undefined`.
         this.view = view;
 
+        // #### Delegate
         // Assign the delegate to its `delegate` property; may be `undefined`. It is up to
         // the respective view to decide on the interface for its delegation.
         this.delegate = delegate;
 
+        // #### Options
         // Merge `Ply.config.ui.defaults`, the `opts` property of the view
         // and the options passed in to this function &mdash; which gets passed from the call
         // to `Ply.ui.register` with an options object.
         this.opts = $.extend({}, Ply.config.ui.defaults, this.opts, options);
 
+        // #### Data
         // Merge the `data` property of the view, with the data passed to this function
         // from `Ply.ui.register`. Save this in `this.data`.
         this.data = $.extend({}, this.data, data);
 
-        // If this.__objects is defined, autogenerate the objects.
+        // #### Objects
+        // If `this.__objects` is defined, autogenerate the objects.
         if (this.__objects) {
             // Create an empty objects hash to store the objects.
             this.objects = {};
@@ -64,6 +74,7 @@ Ply.ui = (function ($) {
             this.__bindObjects();
         }
 
+        // #### Partials
         // If `this.__partials` is defined, autogenerate the partials.
         if (this.__partials) {
             // Create empty hash to store partials.
@@ -95,6 +106,7 @@ Ply.ui = (function ($) {
             this.__bindPartials();
         }
 
+        // #### Notifications
         // If `this.__notifications` is defined.
         if (this.__notifications) {
             // Iterate over the own properties of `this.__notifications`. Note that we do not
@@ -109,6 +121,7 @@ Ply.ui = (function ($) {
             }
         }
 
+        // #### Init
         // If an `__init` method is defined, invoke it.
         if (this.__init && typeof this.__init === 'function') {
             this.__init();
@@ -118,22 +131,29 @@ Ply.ui = (function ($) {
         return this;
     }
 
+    // ## Public Methods & Properties
+
     // Return the public methods and properties to be accessible on `Ply.ui`.
     return {
 
-        // The `fn` property holds is where each view gets created. Views are globally
-        // accesible at `Ply.ui.fn[name]`.
+        // ### fn
+        // The `fn` property is where each view gets created. Views are globally
+        // accesible at `Ply.ui.fn[name]`, though this should be done only by
+        // internal methods. To start up a view, you should call `Ply.ui.register`.
         fn: {},
 
+        // ### Define
         // This is the most common method used on `Ply.ui`. It is used for defining
         // views; expects a name and object prototype.
         define: function (name, prototype) {
 
             // Alias `this` for inner functions.
             var self = this,
+                // #### Base
                 // Create a `base` object, by making a deep copy of `Ply.config.ui.base`.
                 base = $.extend({}, Ply.config.ui.base || {});
 
+            // #### Read
             // If no read method has been defined, create one using the `__url` property
             // of the prototype.
             if (!Ply.read[name]) {
@@ -143,39 +163,74 @@ Ply.ui = (function ($) {
             // Alias `Ply.read[name]` to `this.__read`.
             base.__read = Ply.read[name];
 
-            // Save an `instanteView` call to `Ply.ui.fn[name]`.
+            // #### Start-up method
+            // Return the result of `instanteView` called on the view object
+            // to its named `fn` method.
             this.fn[name] = function (view, options, data, delegate) {
                 return instantiateView.call($.extend({}, self.fn[name].impl),
                                             name, view, options, data, delegate);
             };
 
+            // #### Implementation
+            // Save the implementation as a property of the startup function.
+            // The implementation is a deep copy of the base and prototype.
+            // This avoids collisions with shared properties if two instances
+            // of the same view are used on the page.
             this.fn[name].impl = $.extend({}, base, prototype);
 
-            return;
         },
 
+        // ### Register
+        // Public method for starting up views; accepts a view name, along with
+        // some options. The `options` can contain, an explicit `view` or view selector,
+        // an object of `options`, `data`, and a `delegate`. See `Ply.ui.start` to see
+        // which properties are passed along.
         register: function (name, options) {
 
+            // Default empty object if options is not defined.
             options = options || {};
 
+            // #### Register callback
+            // An optional callback is available for client use
+            // by overriding `Ply.config.ui.onRegister` in `config.js`.
+            // If that function is defined, we let the client do any modifications
+            // before continuing.
             if (Ply.config.ui.onRegister &&
                 typeof Ply.config.ui.onRegister === 'function') {
                 Ply.config.ui.onRegister(name, options);
             }
 
+            // #### Autogenerating Views
+            // If no view or selector is provided, generate a selector
+            // based on the configured implementation. Note that this is the
+            // preferred method to register objects. The philosophy of Ply
+            // encourages users to rely on well-defined conventions for tying
+            // together DOM elements and their respective behaviors.
             if (!options.view) {
                 options.view = Ply.config.ui.selectorGenerator(name);
 
                 Ply.core.log('No view name supplied, implying: ' + options.view);
             }
 
+            // #### Result
+            // We return the result of `Ply.ui.start` so the caller of `Ply.ui.register`,
+            // has access to the individual methods and properties of the view object.
+            // This is often used for partials, where the delegating object, can call
+            // methods of its delegate.
             return this.start(name, options);
         },
 
+        // ### Start
+        // The start method is primarily to be used internally, but is left available
+        // to clients to call directly. It is simply a wrapper around starting the
+        // view.
         start: function (name, o) {
 
+            // Log to the console the view's name.
             Ply.core.log('trying start: ' + name, 'info');
 
+            // Wrap the initialiazation in a try/catch, and log any errors through `Ply.core`'s
+            // error logging mechanism. If debug mode is enabled, allow the error to bubble.
             try {
                 return this.fn[name]($(o.view), o.options, o.data, o.delegate);
             }
@@ -192,4 +247,5 @@ Ply.ui = (function ($) {
 
     };
 
+// Alias `jQuery` to `$` in the module's scope.
 })(jQuery);

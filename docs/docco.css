@@ -21,11 +21,11 @@ a {
     color: inherit !important;
 }
 h1, h2, h3, h4, h5, h6 {
+  color: #fff;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   margin: 0px 0 15px 0;
 }
   h1 {
-    color: #fff;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 2.5em;
     border-bottom: 1px solid #bbb;
     margin-top: 40px;
