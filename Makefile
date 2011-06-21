@@ -24,6 +24,7 @@ combine:
 		src/ajax.js \
 		src/read.js \
 		src/ui.js \
+		src/config.js \
 		> $(COMBINED_FILE);
 
 minify:
