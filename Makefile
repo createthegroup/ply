@@ -16,6 +16,7 @@ all:
 	$(MAKE) clean;
 	$(MAKE) build;
 	$(MAKE) docs;
+	$(MAKE) update-readme;
 
 combine:
 	cat \
@@ -44,6 +45,10 @@ build-update:
 
 build-remove:
 	rm -rf $(BUILDDIR);
+
+update-readme:
+	sed "s/`grep "Version\*\*: .*" README.md -o | cut -d '<' -f1 | cut -d ' ' -f2`/`grep "VERSION: '.*'" src/core.js -o | cut -d "'" -f 2`/g" README.md > _README.md
+	mv -f _README.md README.md
 
 clean:
 	rm -rf $(DOCSDIR)/*.html;
