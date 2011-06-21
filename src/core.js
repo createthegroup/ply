@@ -23,13 +23,16 @@ var Ply = {
 
 Ply.core = (function ($) {
 
+    // ## Private Variables
     // Create private variables. `listeners` is an associative array holding arrays of
     // notification listeners keyed on the notification name.
     var listeners = {},
         debug     = false;
 
+    // ## Public Methods/Properties
     return {
 
+        // ### Notify
         // Notifies listeners of an event. Notifiers should send themselves
         // and optional data as arguments.
         notify: function (note, sender, data) {
@@ -52,6 +55,7 @@ Ply.core = (function ($) {
 
         },
 
+        // ### Listen
         // Listens for a particular notification or set of notifications.
         // Clients should pass in a handler function and themselves as arguments.
         // When the handler function is called, it will be applied to the `listener`'s
@@ -92,6 +96,7 @@ Ply.core = (function ($) {
 
         },
 
+        // ### Log
         // Lightweight logging wrapper around `console`. Useful less so
         // for debugging than for posting notices of interest.
         log: function (msg, type) {
@@ -122,6 +127,7 @@ Ply.core = (function ($) {
 
         },
 
+        // ### Error
         // Error handler to catch all JavaScript errors. We post
         // all error names along with their stack trace and description
         // to a url provided by the client. Configure the URL in `Ply.config.coreerrorLoggingUrl`.
@@ -142,6 +148,7 @@ Ply.core = (function ($) {
 
         },
 
+        // ### Debug
         // Enabled debugging when called with no argues or with any truthy value. To disable debug mode
         // send `false` or another falsy value to this function, e.g.: `Ply.core.debug(0)`.
         debug: function (val) {
@@ -162,6 +169,7 @@ Ply.core = (function ($) {
             this.debugOn = false;
         },
 
+        // ### Debug on
         // Cache the value of debug. This is used by clients to determine
         // if debug mode is currently enabled.
         debugOn: function () {
