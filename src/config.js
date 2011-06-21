@@ -48,11 +48,16 @@ Ply.config = (function ($) {
             // selector engine.
             selectorGenerator: function (name) {
 
+                // #### Example
+                // Split the name on title case, join using `_` and convert to lowercase.
                 var stub = name.match(/[A-Z]?[a-z]+/g).join('_').toLowerCase(),
                     controller = stub.split('_')[0];
 
+                // Create a "stub" which consists of the controller and action name separated
+                // by an underscore.
                 stub = controller + "_" + stub.substr(controller.length + 1).replace('_', '-');
 
+                // Return a selector consisting of a class matching `stub` or of the form `.view-{stub}`.
                 return '.view-' + stub + ', .' + stub;
             },
             // ### Register callback
@@ -62,14 +67,22 @@ Ply.config = (function ($) {
             // initialization. Use with care.
             onRegister: function (name, options) {
 
-                // Modal view
+                // #### Example
+                // If a truthy value (in this case, an object or `true`) is passed in for
+                // options.modal.
                 if (options.modal) {
-                    // Overwrite options.modal so we can naively check for object properties
-                    if (typeof options.modal !== 'object') {
-                        options.modal = {};
-                    }
 
+                    // Make sure options.modal is an object so we can naively access
+                    // properties on it.
+                    options.modal = typeof options.modal === 'object' ? options.modal : {};
+
+                    // Create a new modal view by calling $.modal (using SimpleModal in this example)
+                    // and pass in the view object as the modal element.
                     $.modal(options.view, {
+                        // Pass in a predefined set of accessible properties
+                        // on the modal option to the plugin. Done a) to abstract
+                        // out the library in use underneath, b) to limit the
+                        // overridable properties of modal.
                         containerId: options.modal.containerId,
                         dataClass: options.modal.dataClass,
                         maxWidth: options.modal.maxWidth || 300,
@@ -77,11 +90,16 @@ Ply.config = (function ($) {
                         updateOnOpen: options.modal.updateOnOpen,
                         onShow: function (dialog) {
 
+                            // When the modal view is shown, rebind `options.view`
+                            // which will become `this.view` on the view object to
+                            // the `data` element of the modal (the modal's cotnent).
                             options.view = dialog.data;
 
+                            // Call `Ply.ui.start` explicitly since we return out of this method.
                             Ply.ui.start(name, options);
 
-                            dialog.data.find('.modal-close').click(function (e) {
+                            // Put in modal boilerplate code, e.g. binding to close the modal.
+                            dialog.data.delegate('.modal-close', 'click', function (e) {
                                 e.preventDefault();
 
                                 $.modal.close();
@@ -91,10 +109,12 @@ Ply.config = (function ($) {
 
                 }
 
+                // Explicitly return from this method to avoid `Ply.ui.start` getting called for us.
                 return;
             }
         }
 
     };
 
+// Alias `jQuery` to `$` in module's scope.
 })(jQuery);
