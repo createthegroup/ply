@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.1.7'
+    VERSION: '0.1.8'
 };
 
 // Define `core` module.
@@ -152,9 +152,10 @@ Ply.core = (function ($) {
                 // `debugOn` will still be cached to the old value.
                 this.debugOn = true;
             }
-
-            // Do the opposite.
-            this.debugOn = false;
+            else {
+                // Do the opposite.
+                this.debugOn = false;
+            }
         },
 
         // ### Debug on
