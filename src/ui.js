@@ -33,10 +33,10 @@ Ply.ui = (function ($) {
         this.delegate = delegate;
 
         // #### Options
-        // Merge `Ply.config.ui.defaults`, the `opts` property of the view
+        // Merge `Ply.config.ui.defaults`, the `options` property of the view
         // and the options passed in to this function &mdash; which gets passed from the call
-        // to `Ply.ui.register` with an options object.
-        this.opts = $.extend({}, Ply.config.ui.defaults, this.opts, options);
+        // to `Ply.ui.register` with an `options` object.
+        this.options = $.extend({}, Ply.config.ui.defaults, this.options, options);
 
         // #### Data
         // Merge the `data` property of the view, with the data passed to this function

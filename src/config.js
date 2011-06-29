@@ -57,7 +57,7 @@ Ply.config = (function ($) {
             // ### Defaults
             // The default options for each view object. When the view is started, the
             // options defined in `defaults` are merged with the options defined on
-            // the `opts` property of the view, and any `options` passed in to `Ply.ui.register`.
+            // the `options` property of the view, and any `options` passed in to `Ply.ui.register`.
             defaults: {},
             // ### Selector generator
             // If no `view` property is passed in to `Ply.ui.register`, the name of the view
