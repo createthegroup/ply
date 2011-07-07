@@ -160,8 +160,8 @@ Ply.ui = (function ($) {
                 Ply.read._create(name, prototype.__url);
             }
 
-            // Alias `Ply.read[name]` to `this.__read`.
-            base.__read = Ply.read[name];
+            // Alias `Ply.read[name]` to `this.read`.
+            base.read = Ply.read[name];
 
             // #### Start-up method
             // Return the result of `instanteView` called on the view object
