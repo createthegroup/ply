@@ -4,6 +4,26 @@
 // The UI module provides most of the user-facing functionality
 // for Ply.
 
+// ## Utility methods
+
+// ### Polyfills
+
+// Create a polyfill for `Object.create` so we can use it
+// natively for managing the prototype chain.
+
+// Source code from: [Mozilla Developer Network](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create).
+if (!Object.create) {
+    Object.create = function (o) {
+        if (arguments.length > 1) {
+            throw new Error('Object.create implementation only accepts first parameter.');
+        }
+
+        function F() {}
+        F.prototype = o;
+        return new F();
+    };
+}
+
 Ply.ui = (function ($) {
 
     // ## Private Functions/Variables
@@ -77,6 +97,7 @@ Ply.ui = (function ($) {
         // #### Partials
         // If `this.__partials` is defined, autogenerate the partials.
         if (this.__partials) {
+
             // Create empty hash to store partials.
             this.partials = {};
 
@@ -151,7 +172,7 @@ Ply.ui = (function ($) {
             var self = this,
                 // #### Base
                 // Create a `base` object, by making a deep copy of `Ply.config.ui.base`.
-                base = $.extend({}, Ply.config.ui.base || {});
+                base = Ply.config.ui.base || {};
 
             // #### Read
             // If no read method has been defined, create one using the `__url` property
@@ -160,24 +181,24 @@ Ply.ui = (function ($) {
                 Ply.read._create(name, prototype.__url);
             }
 
-            // Alias `Ply.read[name]` to `this.read`.
-            base.read = Ply.read[name];
-
             // #### Start-up method
             // Return the result of `instanteView` called on the view object
             // to its named `fn` method.
             this.fn[name] = function (view, options, data, delegate) {
-                return instantiateView.call($.extend({}, self.fn[name].impl),
+                // The receiving object is a new object with the `impl` set as its prototype.
+                return instantiateView.call(Object.create(self.fn[name].impl),
                                             name, view, options, data, delegate);
             };
 
             // #### Implementation
             // Save the implementation as a property of the startup function.
-            // The implementation is a deep copy of the base and prototype.
-            // This avoids collisions with shared properties if two instances
-            // of the same view are used on the page.
-            this.fn[name].impl = $.extend({}, base, prototype);
+            // The implementation is an object with the base object as its prototype.
+            // We first create an empty object with the base as its prototype, and then
+            // perform a deep copy of the `prototype` argument onto the new object.
+            this.fn[name].impl = $.extend(Object.create(base), prototype);
 
+            // Alias `Ply.read[name]` to `this.read`.
+            this.fn[name].impl.read = Ply.read[name];
         },
 
         // ### Register
@@ -186,6 +207,9 @@ Ply.ui = (function ($) {
         // an object of `options`, `data`, and a `delegate`. See `Ply.ui.start` to see
         // which properties are passed along.
         register: function (name, options) {
+
+            // Alias `Ply.config.ui`.
+            var config = Ply.config.ui;
 
             // Default empty object if options is not defined, or is not
             // an object.
@@ -196,9 +220,8 @@ Ply.ui = (function ($) {
             // by overriding `Ply.config.ui.onRegister` in `config.js`.
             // If that function is defined, we let the client do any modifications
             // before continuing.
-            if (Ply.config.ui.onRegister &&
-                typeof Ply.config.ui.onRegister === 'function') {
-                Ply.config.ui.onRegister(name, options);
+            if (config.onRegister && typeof config.onRegister === 'function') {
+                config.onRegister(name, options);
             }
 
             // #### Autogenerating Views
@@ -208,7 +231,7 @@ Ply.ui = (function ($) {
             // encourages users to rely on well-defined conventions for tying
             // together DOM elements and their respective behaviors.
             if (!options.view) {
-                options.view = Ply.config.ui.selectorGenerator(name);
+                options.view = config.selectorGenerator(name);
 
                 Ply.core.log('No view name supplied, implying: ' + options.view);
             }
