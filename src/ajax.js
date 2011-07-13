@@ -34,31 +34,31 @@ Ply.ajax = (function ($) {
                     type: type,
                     url: url,
                     data: data,
-                    success: function (response) {
+                    success: function (response, status, xhr) {
 
                         // Call the `success` callback with the response.
                         if (success && typeof success === 'function') {
-                            success(response);
+                            success(response, status, xhr);
                         }
 
                     },
-                    error: function (response) {
+                    error: function (xhr, status, error) {
 
                         // On error, log an AjaxError to the the `console`.
-                        Ply.core.log('AjaxError: ' + response.status + ' - ' + url, 'warn');
+                        Ply.core.log('AjaxError: ' + status + ' - ' + url, 'warn');
 
                         // Call the `error` method on the core module. Will post the error data
                         // to the logging server.
                         Ply.core.error({
                             name: 'AjaxError',
                             // Send the status code in the message.
-                            message: 'Status: ' + response.status,
+                            message: 'Status: ' + status,
                             description: 'URL: ' + url
                         }, 1);
 
                         // Call the `failure` callback function if one is provided.
                         if (failure && typeof failure === 'function') {
-                            failure(response);
+                            failure(xhr, status, error);
                         }
 
                     }
