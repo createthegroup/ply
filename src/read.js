@@ -33,7 +33,7 @@ Ply.read = (function () {
             // Check if the first argument is an object.
             if (typeof name === 'object') {
                 // If so, iterate over all own properties.
-                for (n in name) {
+                for (var n in name) {
                     if (name.hasOwnProperty(n)) {
                         // Call the add method again with the name/url pair.
                         return Ply.read.add(n, name[n]);

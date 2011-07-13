@@ -1,4 +1,4 @@
-/*global jQuery */
+/*global Ply, jQuery */
 /*jshint eqeqeq: true, curly: true, white: true */
 
 // **Ply** is a lightweight JavaScript framework for creating

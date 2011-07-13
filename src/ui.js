@@ -263,8 +263,8 @@ Ply.ui = (function ($) {
                 Ply.core.log(name + ' failed to start.');
                 Ply.core.error(ex, 1);
 
-                 // If debug mode is enabled, allow the error to bubble.
-                 if (Ply.core.debugOn) {
+                // If debug mode is enabled, allow the error to bubble.
+                if (Ply.core.debugOn) {
                     throw ex;
                 }
             }
