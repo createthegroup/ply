@@ -176,9 +176,10 @@ Ply.ui = (function ($) {
 
             // #### Read
             // If no read method has been defined, create one using the `__url` property
-            // of the prototype.
+            // of the prototype, or pass the view name to `Ply.config.read.urlGenerator`
+            // to generate the read function.
             if (!Ply.read[name]) {
-                Ply.read._create(name, prototype.__url);
+                Ply.read.add(name, prototype.__url || Ply.config.read.urlGenerator(name));
             }
 
             // #### Start-up method

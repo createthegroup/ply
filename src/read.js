@@ -15,24 +15,34 @@
 
 // Note that this module makes no assumption about REST, and does not handle requests for any
 // other HTTP verbs. An extension for handling POST and UPDATE requests may come in the future,
-// but has not yet appeared useful.
+// but has not yet been deemed useful.
+
+// ## Public Methods
 
 // Define the `read` module.
 Ply.read = (function () {
 
     return {
 
-        // Private method used by the `ui` module to generate read
-        // functions for `ui` views.
-        _create: function (name, url) {
+        // ### Add
+        // This function is used by clients as well as the UI module to
+        // create new read functions. Usage is to pass in a `name` and a `url`
+        // or optionally, you could pass in an object keyed on names
+        // with URLs as values.
+        add: function (name, url) {
+            // Check if the first argument is an object.
+            if (typeof name === 'object') {
+                // If so, iterate over all own properties.
+                for (n in name) {
+                    if (name.hasOwnProperty(n)) {
+                        // Call the add method again with the name/url pair.
+                        return Ply.read.add(n, name[n]);
+                    }
+                }
+            }
 
-            // If a URL is explicitly passed to this function, that
-            // URL is used, otherwise the view name is passed to
-            // `Ply.config.read.urlGenerator` to create a URL.
-            url = url || Ply.config.read.urlGenerator(name);
-
-            // Create a method on `Ply.read` corresponding to the view name.
-            Ply.read[name] = function (data, success, failure) {
+            // Create a method on `Ply.read` corresponding to the name.
+            this[name] = function (data, success, failure) {
 
                 // Return the result of calling Ply.ajax.request, so the XHR object
                 // gets returned to the user. Allows them to call methods of the XHR.
@@ -43,7 +53,6 @@ Ply.read = (function () {
                 }, success, failure);
 
             };
-
         }
 
     };
