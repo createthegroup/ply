@@ -36,9 +36,11 @@ Ply.read = (function () {
                 for (var n in name) {
                     if (name.hasOwnProperty(n)) {
                         // Call the add method again with the name/url pair.
-                        return Ply.read.add(n, name[n]);
+                        Ply.read.add(n, name[n]);
                     }
                 }
+                
+                return;
             }
 
             // Create a method on `Ply.read` corresponding to the name.
