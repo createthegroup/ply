@@ -222,7 +222,12 @@ Ply.ui = (function ($) {
             // If that function is defined, we let the client do any modifications
             // before continuing.
             if (config.onRegister && typeof config.onRegister === 'function') {
-                config.onRegister(name, options);
+                // `onRegister` can return false if it explicitly makes the call to `Ply.ui.start`.
+                // We check for `false` explicitly so as not to return on `undefined` if the method
+                // simply ends with a bare `return`.
+                if (config.onRegister(name, options) === false) {
+                    return;
+                }
             }
 
             // #### Autogenerating Views
