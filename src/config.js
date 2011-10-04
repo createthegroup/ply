@@ -127,7 +127,7 @@ Ply.config = (function ($) {
                 }
 
                 // Return false from this method to avoid `Ply.ui.start` getting called for us.
-                return false;
+                return;
             }
         }
 
