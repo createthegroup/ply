@@ -24,9 +24,148 @@ if (!Object.create) {
     };
 }
 
+// ### Augmentations
+
+// Augment jQuery.cleanData to fire 'remove' event upon elements removal
+// from DOM to facilitate auto destroy.
+
+// Source code from: [jQuery UI Widget Factory](https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.widget.js)
+var _cleanData = $.cleanData;
+$.cleanData = function(elems) {
+    for (var i = 0, elem; (elem = elems[i]) != null; i++) {
+        // Fire '__remove' instead of 'remove' to prevent any bound events from
+        // firing twice when used in conjunction with the widget factory.
+        $(elem).triggerHandler('__remove');
+    }
+    _cleanData(elems);
+};
+
 Ply.ui = (function ($) {
 
     // ## Private Functions/Variables
+
+    // ### Base prototype
+    // All views inherit from base object.
+    var base = {
+
+        // Method for binding objects. Method can be called by view or clients
+        // if the DOM gets updated. Note that for event handling, it's better
+        // to use event delegation (using jQuery's `delegate` method), than to rebind
+        // the objects and attach handlers.
+        __bindObjects: function () {
+
+            // #### Objects
+            // If `this.__objects` is defined, autogenerate the objects.
+            if (this.__objects) {
+                // Create an empty objects hash to store the objects.
+                this.objects = {};
+
+                // Iterate over the own properties of `this.__objects`.
+                for (var id in this.__objects) {
+                    if (this.__objects.hasOwnProperty(id)) {
+                        // Attach the result of calling `this.view.find` with
+                        // the provided selector to the respective property of
+                        //  `this.objects`.
+
+                        // We intentionally use `this.view.find` and not a global
+                        // jQuery search to enforce good encapsulation, avoid clobbering
+                        // selectors, and optimize performance.
+                        this.objects[id] = this.view.find(this.__objects[id]);
+                    }
+                }
+            }
+
+        },
+
+        // Declare method for binding partials. Method is created for same purposes
+        // as `this.__bindObjects`.
+        __bindPartials: function () {
+            
+            // #### Partials
+            // If `this.__partials` is defined, autogenerate the partials.
+            if (this.__partials) {
+
+                // Create empty hash to store partials.
+                this.partials = {};
+
+                // Iterate over the own properties of `this.__partials` which have
+                // corresponding objects which matched at least one element. Ensures
+                // that partials are given a proper view.
+                for (var id in this.__partials) {
+                    if (this.__partials.hasOwnProperty(id) &&
+                        this.objects[id] &&
+                        this.objects[id].length) {
+
+                        // Assign to the respective property of `this.partials` the result of
+                        // registering a view with the given name, view, and defining view as
+                        // its delegate.
+                        this.partials[id] = Ply.ui.register(this.__partials[id], {
+                            view: this.objects[id],
+                            delegate: this
+                        });
+                    }
+                }
+            }
+
+        },
+
+        // Declare method for binding notifications. Method is created for same purposes
+        // as `this.__bindObjects` and `this.__bindPartials`.
+        __bindNotifications: function () {
+            
+            // #### Notifications
+            // If `this.__notifications` is defined, autogenerate the notifications.
+            if (this.__notifications) {
+
+                // Create empty hash to store notifications handles used to ignore
+                // notifications when no longer required.
+                this.notifications = {};
+
+                // Iterate over the own properties of `this.__notifications`.
+                for (var note in this.__notifications) {
+                    if (this.__notifications.hasOwnProperty(note)) {
+                        // Listen to the respective notification using the handler string to
+                        // reference the given method of the view.
+                        this.notifications[note] = Ply.core.listen(note, this[this.__notifications[note]], this);
+                    }
+                }
+            }
+
+        },
+
+        // Declare method to destroy view. `this.__destroy__` is automatically called when view element is
+        // removed from the DOM.
+        __destroy__: function () {
+            
+            // #### Destroy
+            // If `this.__destroy` has been defined by the view invoke it here.
+            if ($.isFunction(this.__destroy)) {
+                // Any other housekeeping pertaining to a particular view (e.g. unbinding events)
+                // should be handled by the view in question by defining `this.__destroy`.
+                this.__destroy();
+            }
+
+            // Destroy partials.
+            for (var id in this.partials) {
+                if (this.partials.hasOwnProperty(id)) {
+                    this.partials[id].__destroy__();
+                }
+            }
+            
+            // Ignore all notifications bound using the `__notifications` object.
+            // This ensures notifications aren't called multiple times in cases where
+            // the view is re-registered and that all references to the view object are
+            // removed (assuming events have been unbound) so it can safely be garbage
+            // collected by the browser.
+            for (var note in this.notifications) {
+                if (this.notifications.hasOwnProperty(note)) {
+                    Ply.core.ignore(this.notifications[note]);
+                }
+            }
+
+        }
+
+    };
 
     // ### Instantiate View
     // This is a private function which is called when a view is started.
@@ -63,84 +202,18 @@ Ply.ui = (function ($) {
         // from `Ply.ui.register`. Save this in `this.data`.
         this.data = $.extend({}, this.data, data);
 
-        // #### Objects
-        // If `this.__objects` is defined, autogenerate the objects.
-        if (this.__objects) {
-            // Create an empty objects hash to store the objects.
-            this.objects = {};
+        // Invoke `this.__bindObjects`.
+        this.__bindObjects();
 
-            // Create a function for binding objects. A function is created so
-            // the view or clients can call `__bindObjects` on the view, if the
-            // DOM gets updated. Note that for event handling, it's better to use
-            // event delegation (using jQuery's `delegate` method), than to rebind
-            // the objects and attach handlers.
-            this.__bindObjects = function () {
-                // Iterate over the own properties of `this.__objects`.
-                for (var id in self.__objects) {
-                    if (self.__objects.hasOwnProperty(id)) {
-                        // Attach the result of calling `this.view.find` with
-                        // the provided selector to the respective property of
-                        //  `this.objects`.
+        // Invoke `this.__bindPartials`
+        this.__bindPartials();
 
-                        // We intentionally use `this.view.find` and not a global
-                        // jQuery search to enforce good encapsulation, avoid clobbering
-                        // selectors, and optimize performance.
-                        self.objects[id] = self.view.find(self.__objects[id]);
-                    }
-                }
-            };
+        // Invoke `this.__bindNotifications`
+        this.__bindNotifications();
 
-            // Invoke `this.__bindObjects`.
-            this.__bindObjects();
-        }
-
-        // #### Partials
-        // If `this.__partials` is defined, autogenerate the partials.
-        if (this.__partials) {
-
-            // Create empty hash to store partials.
-            this.partials = {};
-
-            // Declare function for binding partials. Function is created for same purposes
-            // as `this.__bindObjects`.
-            this.__bindPartials = function () {
-                // Iterate over the own properties of `this.__partials` which have
-                // corresponding objects which matched at least one element. Ensures
-                // that partials are given a proper view.
-                for (var id in self.__partials) {
-                    if (self.__partials.hasOwnProperty(id) &&
-                        self.objects[id] &&
-                        self.objects[id].length) {
-
-                        // Assign to the respective property of `this.partials` the result of
-                        // registering a view with the given name, view, and defining view as
-                        // its delegate.
-                        self.partials[id] = Ply.ui.register(self.__partials[id], {
-                            view: self.objects[id],
-                            delegate: self
-                        });
-                    }
-                }
-            };
-
-            // Invoke `this.__bindPartials`
-            this.__bindPartials();
-        }
-
-        // #### Notifications
-        // If `this.__notifications` is defined.
-        if (this.__notifications) {
-            // Iterate over the own properties of `this.__notifications`. Note that we do not
-            // create and immediately invoke a function here since notifications never need to
-            // be re-bound.
-            for (var note in this.__notifications) {
-                if (this.__notifications.hasOwnProperty(note)) {
-                    // Listen to the respective notification using the handler string to
-                    // reference the given method of the view.
-                    Ply.core.listen(note, this[this.__notifications[note]], this);
-                }
-            }
-        }
+        // Bind '__remove' event to be fired when view element is removed from DOM
+        // through the augmentation of jQuery.cleanData.
+        this.view.bind('__remove', $.proxy(this, '__destroy__'));
 
         // #### Init
         // If an `__init` method is defined, invoke it.
@@ -171,8 +244,9 @@ Ply.ui = (function ($) {
             // Alias `this` for inner functions.
             var self = this,
                 // #### Base
-                // Create a `base` object, by making a deep copy of `Ply.config.ui.base`.
-                base = Ply.config.ui.base || {};
+                // Merge base and `Ply.config.ui.base` to create the prototype view
+                // implementations will inherit from.
+                basePrototype = $.extend(base, Ply.config.ui.base || {});
 
             // #### Read
             // If no read method has been defined, create one using the `__url` property
@@ -196,7 +270,7 @@ Ply.ui = (function ($) {
             // The implementation is an object with the base object as its prototype.
             // We first create an empty object with the base as its prototype, and then
             // perform a deep copy of the `prototype` argument onto the new object.
-            this.fn[name].impl = $.extend(Object.create(base), prototype);
+            this.fn[name].impl = $.extend(Object.create(basePrototype), prototype);
 
             // Alias `Ply.read[name]` to `this.read`.
             this.fn[name].impl.read = Ply.read[name];

@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.2.3'
+    VERSION: '0.3'
 };
 
 // Define `core` module.
@@ -27,6 +27,8 @@ Ply.core = (function ($) {
     // Create private variables. `listeners` is an associative array holding arrays of
     // notification listeners keyed on the notification name.
     var listeners = {},
+        // id used to uniquely identify listeners for use in ignore.
+        id        = 0,
         debug     = false;
 
     // ## Public Methods/Properties
@@ -80,9 +82,29 @@ Ply.core = (function ($) {
 
             // Add the listener and handler function to the notifications array.
             list.push({
+                id: id += 1,
                 handler: handler,
                 listener: listener
             });
+            
+            // return handle used to ignore.
+            return [notification, id];
+        },
+
+        // ### Ignore
+        // Removes a particular notification from listeners object.
+        // Clients should pass in the returned handle from `Ply.core.listen`.
+        ignore: function (handle) {
+            
+            var note = handle[0];
+
+            listeners[note] && $.each(listeners[note], function(i) {
+                if(this.id == handle[1]){
+                    listeners[note].splice(i, 1);
+                }
+            });
+
+            return;
         },
 
         // ### Log
