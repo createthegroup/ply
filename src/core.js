@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.3'
+    VERSION: '0.3.3'
 };
 
 // Define `core` module.

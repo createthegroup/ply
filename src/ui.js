@@ -4,43 +4,45 @@
 // The UI module provides most of the user-facing functionality
 // for Ply.
 
-// ## Utility methods
-
-// ### Polyfills
-
-// Create a polyfill for `Object.create` so we can use it
-// natively for managing the prototype chain.
-
-// Source code from: [Mozilla Developer Network](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create).
-if (!Object.create) {
-    Object.create = function (o) {
-        if (arguments.length > 1) {
-            throw new Error('Object.create implementation only accepts first parameter.');
-        }
-
-        function F() {}
-        F.prototype = o;
-        return new F();
-    };
-}
-
-// ### Augmentations
-
-// Augment jQuery.cleanData to fire 'remove' event upon elements removal
-// from DOM to facilitate auto destroy.
-
-// Source code from: [jQuery UI Widget Factory](https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.widget.js)
-var _cleanData = $.cleanData;
-$.cleanData = function(elems) {
-    for (var i = 0, elem; (elem = elems[i]) != null; i++) {
-        // Fire '__remove' instead of 'remove' to prevent any bound events from
-        // firing twice when used in conjunction with the widget factory.
-        $(elem).triggerHandler('__remove');
-    }
-    _cleanData(elems);
-};
-
 Ply.ui = (function ($) {
+
+    // ## Utility methods
+
+    // ### Polyfills
+
+    // Create a polyfill for `Object.create` so we can use it
+    // natively for managing the prototype chain.
+
+    // Source code from: [Mozilla Developer Network](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create).
+    if (!Object.create) {
+        Object.create = function (o) {
+            if (arguments.length > 1) {
+                throw new Error('Object.create implementation only accepts first parameter.');
+            }
+
+            function F() {}
+            F.prototype = o;
+            return new F();
+        };
+    }
+
+    // ### Augmentations
+
+    // Augment jQuery.cleanData to fire 'remove' event upon elements removal
+    // from DOM to facilitate auto destroy.
+
+    // Source code from: [jQuery UI Widget Factory](https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.widget.js)
+    var _cleanData = $.cleanData;
+    $.cleanData = function(elems) {
+        for (var i = 0, elem; (elem = elems[i]) != null; i++) {
+            // Fire 'ply-view-removed' instead of 'remove' to prevent any bound events from
+            // firing twice when used in conjunction with the widget factory.
+            try {
+                $(elem).triggerHandler('ply-view-removed');
+            } catch(e) {}
+        }
+        _cleanData(elems);
+    };
 
     // ## Private Functions/Variables
 
@@ -133,9 +135,9 @@ Ply.ui = (function ($) {
 
         },
 
-        // Declare method to destroy view. `this.__destroy__` is automatically called when view element is
+        // Declare method to destroy view. `this.__destroyView` is automatically called when view element is
         // removed from the DOM.
-        __destroy__: function () {
+        __destroyView: function () {
             
             // #### Destroy
             // If `this.__destroy` has been defined by the view invoke it here.
@@ -148,7 +150,29 @@ Ply.ui = (function ($) {
             // Destroy partials.
             for (var id in this.partials) {
                 if (this.partials.hasOwnProperty(id)) {
-                    this.partials[id].__destroy__();
+                    this.partials[id].__destroyView();
+                }
+            }
+
+            // Delete delegates reference to `this`.
+            if (this.delegate && this.delegate.partials) {
+                for (var id in this.delegate.partials) {
+                    if (this.delegate.partials.hasOwnProperty(id)) {
+                        if (this.delegate.partials[id] === this) {
+                            delete this.delegate.partials[id];
+                        }
+                    }
+                }
+            }
+
+            // Delete delegates reference to `this.view`.
+            if (this.delegate && this.delegate.objects) {
+                for (var id in this.delegate.objects) {
+                    if (this.delegate.objects.hasOwnProperty(id)) {
+                        if (this.delegate.objects[id][0] === this.view[0]) {
+                            delete this.delegate.objects[id];
+                        }
+                    }
                 }
             }
             
@@ -195,25 +219,25 @@ Ply.ui = (function ($) {
         // Merge `Ply.config.ui.defaults`, the `options` property of the view
         // and the options passed in to this function &mdash; which gets passed from the call
         // to `Ply.ui.register` with an `options` object.
-        this.options = $.extend({}, Ply.config.ui.defaults, this.options, options);
+        this.options = $.extend(true, {}, Ply.config.ui.defaults, this.options, options);
 
         // #### Data
         // Merge the `data` property of the view, with the data passed to this function
         // from `Ply.ui.register`. Save this in `this.data`.
-        this.data = $.extend({}, this.data, data);
+        this.data = $.extend(true, {}, this.data, data);
 
         // Invoke `this.__bindObjects`.
         this.__bindObjects();
 
-        // Invoke `this.__bindPartials`
+        // Invoke `this.__bindPartials`.
         this.__bindPartials();
 
-        // Invoke `this.__bindNotifications`
+        // Invoke `this.__bindNotifications`.
         this.__bindNotifications();
 
-        // Bind '__remove' event to be fired when view element is removed from DOM
-        // through the augmentation of jQuery.cleanData.
-        this.view.bind('__remove', $.proxy(this, '__destroy__'));
+        // Listen to the 'ply-view-removed' event to then ignore notifications and delete
+        // all references to `this` through `this.__destroyView`.
+        this.view.bind('ply-view-removed', $.proxy(this, '__destroyView'));
 
         // #### Init
         // If an `__init` method is defined, invoke it.

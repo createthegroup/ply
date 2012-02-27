@@ -53,7 +53,43 @@ Ply.config = (function ($) {
             // The base object from which all views are copied. Any properties
             // created on this object will be available to every view created
             // using `Ply.ui.define`.
-            base: {},
+            base: {
+                
+                // Calling `this.refreshView()` and passing in the views html
+                // response from an ajax call will automatically update the DOM
+                // and re-register the view and its partials whilst persisting
+                // `this.options` & `this.data`.
+                refreshView: function (html) {
+
+                    var view;
+
+                    html = $(html);
+
+                    this.view.replaceWith(html);
+
+                    view = Ply.ui.register(this.name, {
+                        view: html,
+                        options: this.options,
+                        data: this.data,
+                        delegate: this.delegate
+                    });
+
+                    Ply.core.notify('update-forms', view);
+
+                    return view;
+                },
+                
+                // NOTE: The following helper objects require the scripts to be
+                // included at the bottom of the page.
+                window: $(window),
+
+                document: $(document),
+
+                html: $('html'),
+
+                body: $('body')
+
+            },
             // ### Defaults
             // The default options for each view object. When the view is started, the
             // options defined in `defaults` are merged with the options defined on
