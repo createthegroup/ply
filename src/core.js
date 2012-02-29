@@ -16,7 +16,7 @@
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.3.3'
+    VERSION: '0.3.4'
 };
 
 // Define `core` module.
@@ -164,7 +164,7 @@ Ply.core = (function ($) {
         debug: function (val) {
 
             // Default to `true` if no arguments.
-            debug = val || true;
+            debug = typeof val === 'undefined' ? true : val;
 
             if (debug) {
                 // Print debug notice.

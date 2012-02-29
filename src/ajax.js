@@ -18,7 +18,8 @@ Ply.ajax = (function ($) {
                 // Default to `GET` request if no type is explicitly given.
                 type = r.type  || "GET",
                 url  = r.url   || '',
-                data = r.data  || {};
+                data = r.data  || {},
+                cache = typeof r.cache === 'undefined' ? true : r.cache;
 
             // Send along a `debug` parameter on all requests
             // if debug mode is enabled.
