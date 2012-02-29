@@ -35,6 +35,7 @@ Ply.ajax = (function ($) {
                     type: type,
                     url: url,
                     data: data,
+                    cache: cache,
                     success: function (response, status, xhr) {
 
                         // Call the `success` callback with the response.
