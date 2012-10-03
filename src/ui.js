@@ -187,6 +187,61 @@ Ply.ui = (function ($) {
                 }
             }
 
+        },
+
+        // Returns 'option' from options obj traversing up views delegate objects.
+        __getOption: function (option) {
+
+            var view = this,
+                value = this.options[option];
+
+            while (typeof value === 'undefined') {
+                if (typeof view.delegate !== 'undefined') {
+                    view = view.delegate;
+                    value = view.options[option];
+                }
+                else {
+                    break;
+                }
+            }
+
+            return value;
+        },
+
+        // Sets `option` as `val` first looking for the options existence on
+        // `this.view.options` and traversing up the views delegates. If `option`
+        // cannot be found it'll be created on `this.view.options`.
+        // Passing in `checkDelegate` as false will prevent traversal of the views
+        // delegates and force it to be created on `this.view.options`.
+        __setOption: function (option, value, checkDelegate) {
+
+            var view = this;
+
+            // `option` can be object which will allow multiple options to be updated at once.
+            if (typeof option === 'object') {
+                checkDelegate = value;
+                for (var opt in option) {
+                    if (option.hasOwnProperty(opt)) {
+                        this.__setOption(opt, option[opt], checkDelegate);
+                    }
+                }
+                return;
+            }
+
+            // undefined should pass (default to using delegate)
+            if (checkDelegate || typeof checkDelegate === 'undefined') {
+                while (!(option in view.options)) {
+                    if (typeof view.delegate !== 'undefined') {
+                        view = view.delegate;
+                    }
+                    else {
+                        view = this;
+                        break;
+                    }
+                }
+            }
+
+            view.options[option] = value;
         }
 
     };
