@@ -33,7 +33,7 @@ Ply.ui = (function ($) {
 
     // Source code from: [jQuery UI Widget Factory](https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.widget.js)
     var _cleanData = $.cleanData;
-    $.cleanData = function(elems) {
+    $.cleanData = function (elems) {
         for (var i = 0, elem; (elem = elems[i]) != null; i++) {
             // Fire 'ply-view-removed' instead of 'remove' to prevent any bound events from
             // firing twice when used in conjunction with the widget factory.
@@ -189,59 +189,32 @@ Ply.ui = (function ($) {
 
         },
 
-        // Returns 'option' from options obj traversing up views delegate objects.
+        // See getOptionOrData
         __getOption: function (option) {
 
-            var view = this,
-                value = this.options[option];
-
-            while (typeof value === 'undefined') {
-                if (typeof view.delegate !== 'undefined') {
-                    view = view.delegate;
-                    value = view.options[option];
-                }
-                else {
-                    break;
-                }
-            }
-
-            return value;
+            return getOptionOrData.call(this, option, 'options');
+            
         },
 
-        // Sets `option` as `val` first looking for the options existence on
-        // `this.view.options` and traversing up the views delegates. If `option`
-        // cannot be found it'll be created on `this.view.options`.
-        // Passing in `checkDelegate` as false will prevent traversal of the views
-        // delegates and force it to be created on `this.view.options`.
-        __setOption: function (option, value, checkDelegate) {
+        // See setOptionOrData
+        __setOption: function (option, value, checkDelegateChain) {
 
-            var view = this;
+            return setOptionOrData.call(this, option, value, checkDelegateChain, 'options');
 
-            // `option` can be object which will allow multiple options to be updated at once.
-            if (typeof option === 'object') {
-                checkDelegate = value;
-                for (var opt in option) {
-                    if (option.hasOwnProperty(opt)) {
-                        this.__setOption(opt, option[opt], checkDelegate);
-                    }
-                }
-                return;
-            }
+        },
 
-            // undefined should pass (default to using delegate)
-            if (checkDelegate || typeof checkDelegate === 'undefined') {
-                while (!(option in view.options)) {
-                    if (typeof view.delegate !== 'undefined') {
-                        view = view.delegate;
-                    }
-                    else {
-                        view = this;
-                        break;
-                    }
-                }
-            }
+        // See getOptionOrData
+        __getData: function (data) {
 
-            view.options[option] = value;
+            return getOptionOrData.call(this, data, 'data');
+
+        },
+
+        // See setOptionOrData
+        __setData: function (data, value, checkDelegateChain) {
+
+            return setOptionOrData.call(this, data, value, checkDelegateChain, 'data');
+
         }
 
     };
@@ -302,6 +275,70 @@ Ply.ui = (function ($) {
 
         // Return the view.
         return this;
+    }
+
+    // ### Get Options or Data
+    // Returns `name` from `this.options` / `this.data` starting at `this`
+    // then traversing up the views delegate chain until a match is found.
+
+    // `type` can be either 'options' or 'data'.
+    function getOptionOrData(name, type) {
+        
+        var view = this,
+            value = this[type][name];
+
+        while (typeof value === 'undefined') {
+            if (typeof view.delegate !== 'undefined') {
+                view = view.delegate;
+                value = view[type][name];
+            }
+            else {
+                break;
+            }
+        }
+
+        return value;
+    }
+
+    // ### Set Options or Data
+    // Sets `name` to `value` on `this.options` / `this.data` starting at `this`
+    // then traversing up the views delegate chain until a match is found.
+    // If `name` cannot be found it will be created on `this.options` / `this.data`.
+
+    // Passing in `checkDelegateChain` as a falsey value will prevent traversal
+    // of the views delegate chain and force it to be created on `this.options` / `this.data`.
+
+    // `type` can be either 'options' or 'data'.
+    function setOptionOrData(name, value, checkDelegateChain, type) {
+
+        var view = this;
+
+        // `name` can be an object or string, if it is an object it will loop through
+        // each property separately.
+        if (typeof name === 'object') {
+            checkDelegateChain = value;
+            for (var prop in name) {
+                if (name.hasOwnProperty(prop)) {
+                    setOptionOrData.call(this, prop, name[prop], checkDelegateChain, type);
+                }
+            }
+            return;
+        }
+
+        // `undefined` or truthy value should pass
+        if (checkDelegateChain || typeof checkDelegateChain === 'undefined') {
+            while (!(name in view[type])) {
+                if (typeof view.delegate !== 'undefined') {
+                    view = view.delegate;
+                }
+                else {
+                    view = this;
+                    break;
+                }
+            }
+        }
+
+        view[type][name] = value;
     }
 
     // ## Public Methods & Properties
