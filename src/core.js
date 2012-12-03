@@ -1,5 +1,7 @@
-/*global Ply, jQuery */
-/*jshint eqeqeq: true, curly: true, white: true */
+/* global Ply, jQuery */
+/* jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
+immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: "single",
+undef: true, unused: true, strict: true, trailing: true */
 
 // **Ply** is a lightweight JavaScript framework for creating
 // reusable UI components and managing application logic. It
@@ -16,20 +18,22 @@
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.3.6'
+    VERSION: '0.4'
 };
 
 // Define `core` module.
 
 Ply.core = (function ($) {
 
+    'use strict';
+
     // ## Private Variables
     // Create private variables. `listeners` is an associative array holding arrays of
     // notification listeners keyed on the notification name.
     var listeners = {},
         // id used to uniquely identify listeners for use in ignore.
-        id        = 0,
-        debug     = false;
+        id = 0,
+        debug = false;
 
     // ## Public Methods/Properties
     return {
@@ -42,8 +46,8 @@ Ply.core = (function ($) {
             // Cache listeners array or create a new array, assign, and cache it.
             var list = listeners[note] || (listeners[note] = []),
                 // Create loop variables.
-                i    = 0,
-                len  = list.length;
+                i = 0,
+                len = list.length;
 
             // Loop over listeners and notify each.
             for (; i < len; i++) {
@@ -67,8 +71,8 @@ Ply.core = (function ($) {
                 // names split by whitespace.
                 notes = notification.split(/\s/),
                 // Create loop variables.
-                len   = notes.length,
-                i     = 0;
+                len = notes.length,
+                i = 0;
 
             // If the notification name contains whitespace,
             // listen on each particular notification (segment).
@@ -98,11 +102,13 @@ Ply.core = (function ($) {
             
             var note = handle[0];
 
-            listeners[note] && $.each(listeners[note], function(i) {
-                if(this.id == handle[1]){
-                    listeners[note].splice(i, 1);
-                }
-            });
+            if (listeners[note]) {
+                $.each(listeners[note], function(i) {
+                    if (this.id === handle[1]) {
+                        listeners[note].splice(i, 1);
+                    }
+                });
+            }
 
             return;
         },

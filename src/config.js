@@ -1,10 +1,14 @@
-/*global Ply, jQuery */
-/*jshint eqeqeq: true, curly: true, white: true */
+/* global Ply, jQuery */
+/* jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
+immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: "single",
+undef: true, unused: true, strict: true, trailing: true */
 
 // The Config module provides hooks for many of the processes in Ply
 // and is meant to be modified/replaced by the user.
 
 Ply.config = (function ($) {
+
+    'use strict';
 
     return {
 
@@ -28,7 +32,7 @@ Ply.config = (function ($) {
 
                 // If the error is fatal, inform the user.
                 if (sev > 1) {
-                    alert('An error has occurred. Please refresh your browser');
+                    window.alert('An error has occurred. Please refresh your browser');
                 }
             }
         },
@@ -74,7 +78,7 @@ Ply.config = (function ($) {
                         delegate: this.delegate
                     });
 
-                    Ply.core.notify('update-forms', view);
+                    Ply.core.notify('view-refreshed', view);
 
                     return view;
                 },
@@ -108,7 +112,7 @@ Ply.config = (function ($) {
 
                 // Create a "stub" which consists of the controller and action name separated
                 // by an underscore.
-                stub = controller + "_" + stub.substr(controller.length + 1).replace('_', '-');
+                stub = controller + '_' + stub.substr(controller.length + 1).replace('_', '-');
 
                 // Return a selector consisting of a class matching `stub` or of the form `.view-{stub}`.
                 return '.view-' + stub + ', .' + stub;

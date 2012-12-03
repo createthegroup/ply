@@ -1,5 +1,7 @@
-/*global Ply */
-/*jshint eqeqeq: true, curly: true, white: true */
+/* global Ply, jQuery */
+/* jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
+immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: "single",
+undef: true, unused: true, strict: true, trailing: true */
 
 // The Read module is an abstraction on top of Ajax for loading particular
 // views, or named URLs.
@@ -21,6 +23,8 @@
 
 // Define the `read` module.
 Ply.read = (function () {
+
+    'use strict';
 
     return {
 
@@ -44,15 +48,14 @@ Ply.read = (function () {
             }
 
             // Create a method on `Ply.read` corresponding to the name.
-            this[name] = function (data, success, failure) {
+            this[name] = function (options) {
+
+                options = options || {};
+                options.url = url;
 
                 // Return the result of calling Ply.ajax.request, so the XHR object
                 // gets returned to the user. Allows them to call methods of the XHR.
-                return Ply.ajax.request({
-                    url: url,
-                    type: 'GET',
-                    data: data
-                }, success, failure);
+                return Ply.ajax.request(options);
 
             };
         }

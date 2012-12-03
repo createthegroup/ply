@@ -1,4 +1,4 @@
 # Ply
 
-**Current Version**: 0.3.4<br />
-**Last Updated**: February 27, 2012
+**Current Version**: 0.4<br />
+**Last Updated**: December 03, 2012
