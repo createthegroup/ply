@@ -83,7 +83,7 @@ Ply.config = (function ($) {
                     return view;
                 },
                 
-                // NOTE: The following helper objects require the scripts to be
+                // NOTE: The following helper elements require the scripts to be
                 // included at the bottom of the page.
                 window: $(window),
 

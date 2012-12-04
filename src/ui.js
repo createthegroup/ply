@@ -43,7 +43,7 @@ Ply.ui = (function ($) {
             // firing twice when used in conjunction with the widget factory.
             try {
                 $(elem).triggerHandler('ply-view-removed');
-            } catch(e) {}
+            } catch (e) {}
         }
         _cleanData(elems);
     };
@@ -54,29 +54,29 @@ Ply.ui = (function ($) {
     // All views inherit from base object.
     var base = {
 
-        // Method for binding objects. Method can be called by view or clients
+        // Method for binding elements. Method can be called by view or clients
         // if the DOM gets updated. Note that for event handling, it's better
         // to use event delegation (using jQuery's `delegate` method), than to rebind
-        // the objects and attach handlers.
-        __bindObjects: function () {
+        // the elements and attach handlers.
+        __bindElements: function () {
 
-            // #### Objects
-            // If `this.__objects` is defined, autogenerate the objects.
-            if (this.__objects) {
-                // Create an empty objects hash to store the objects.
-                this.objects = {};
+            // #### Elements
+            // If `this.__elements` is defined, autogenerate the elements.
+            if (this.__elements) {
+                // Create an empty elements hash to store the elements.
+                this.elements = {};
 
-                // Iterate over the own properties of `this.__objects`.
-                for (var id in this.__objects) {
-                    if (this.__objects.hasOwnProperty(id)) {
+                // Iterate over the own properties of `this.__elements`.
+                for (var id in this.__elements) {
+                    if (this.__elements.hasOwnProperty(id)) {
                         // Attach the result of calling `this.view.find` with
                         // the provided selector to the respective property of
-                        //  `this.objects`.
+                        //  `this.elements`.
 
                         // We intentionally use `this.view.find` and not a global
                         // jQuery search to enforce good encapsulation, avoid clobbering
                         // selectors, and optimize performance.
-                        this.objects[id] = this.view.find(this.__objects[id]);
+                        this.elements[id] = this.view.find(this.__elements[id]);
                     }
                 }
             }
@@ -84,7 +84,7 @@ Ply.ui = (function ($) {
         },
 
         // Declare method for binding partials. Method is created for same purposes
-        // as `this.__bindObjects`.
+        // as `this.__bindElements`.
         __bindPartials: function () {
             
             // #### Partials
@@ -95,18 +95,18 @@ Ply.ui = (function ($) {
                 this.partials = {};
 
                 // Iterate over the own properties of `this.__partials` which have
-                // corresponding objects which matched at least one element. Ensures
+                // corresponding elements which matched at least one element. Ensures
                 // that partials are given a proper view.
                 for (var id in this.__partials) {
                     if (this.__partials.hasOwnProperty(id) &&
-                        this.objects[id] &&
-                        this.objects[id].length) {
+                        this.elements[id] &&
+                        this.elements[id].length) {
 
                         // Assign to the respective property of `this.partials` the result of
                         // registering a view with the given name, view, and defining view as
                         // its delegate.
                         this.partials[id] = Ply.ui.register(this.__partials[id], {
-                            view: this.objects[id],
+                            view: this.elements[id],
                             delegate: this
                         });
                     }
@@ -116,7 +116,7 @@ Ply.ui = (function ($) {
         },
 
         // Declare method for binding notifications. Method is created for same purposes
-        // as `this.__bindObjects` and `this.__bindPartials`.
+        // as `this.__bindElements` and `this.__bindPartials`.
         __bindNotifications: function () {
             
             // #### Notifications
@@ -142,6 +142,8 @@ Ply.ui = (function ($) {
         // Declare method to destroy view. `this.__destroyView` is automatically called when view element is
         // removed from the DOM.
         __destroyView: function () {
+
+            var id;
             
             // #### Destroy
             // If `this.__destroy` has been defined by the view invoke it here.
@@ -152,7 +154,7 @@ Ply.ui = (function ($) {
             }
 
             // Destroy partials.
-            for (var id in this.partials) {
+            for (id in this.partials) {
                 if (this.partials.hasOwnProperty(id)) {
                     this.partials[id].__destroyView();
                 }
@@ -160,7 +162,7 @@ Ply.ui = (function ($) {
 
             // Delete delegates reference to `this`.
             if (this.delegate && this.delegate.partials) {
-                for (var id in this.delegate.partials) {
+                for (id in this.delegate.partials) {
                     if (this.delegate.partials.hasOwnProperty(id)) {
                         if (this.delegate.partials[id] === this) {
                             delete this.delegate.partials[id];
@@ -170,11 +172,11 @@ Ply.ui = (function ($) {
             }
 
             // Delete delegates reference to `this.view`.
-            if (this.delegate && this.delegate.objects) {
-                for (var id in this.delegate.objects) {
-                    if (this.delegate.objects.hasOwnProperty(id)) {
-                        if (this.delegate.objects[id][0] === this.view[0]) {
-                            delete this.delegate.objects[id];
+            if (this.delegate && this.delegate.elements) {
+                for (id in this.delegate.elements) {
+                    if (this.delegate.elements.hasOwnProperty(id)) {
+                        if (this.delegate.elements[id][0] === this.view[0]) {
+                            delete this.delegate.elements[id];
                         }
                     }
                 }
@@ -258,7 +260,7 @@ Ply.ui = (function ($) {
         // from `Ply.ui.register`. Save this in `this.data`.
         this.data = $.extend(true, {}, this.data, data);
 
-        // Invoke `this.__bindObjects`.
+        // Invoke `this.__bindElements`.
         this.__bindObjects();
 
         // Invoke `this.__bindPartials`.
