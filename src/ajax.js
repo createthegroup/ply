@@ -1,7 +1,7 @@
-﻿/* global Ply, jQuery */
-/* jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
-immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: "single",
-undef: true, unused: true, strict: true, trailing: true */
+﻿/*global Ply, jQuery */
+/*jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
+immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: single,
+undef: true, unused: true, strict: true, trailing: true, browser: true */
 
 // The Ajax module is a simple wrapper around jQuery's `ajax` method which allows us to
 // catch all Ajax errors and log them in one place, extend the data sent to the server and
@@ -106,11 +106,8 @@ Ply.ajax = (function ($) {
                 options = options || {};
                 options.url = url;
             }
-        
-            var self = this,
-                // Used to map `success`, `error` and `complete` callback
-                // arguments with this request.
-                requestId = guid++,
+                
+            var requestId = guid++,
                 deferred = options.deferred || new $.Deferred(),
                 success = options.success || $.noop,
                 error = options.error || $.noop,

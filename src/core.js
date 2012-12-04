@@ -1,7 +1,7 @@
-/* global Ply, jQuery */
-/* jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
-immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: "single",
-undef: true, unused: true, strict: true, trailing: true */
+/*global Ply, jQuery */
+/*jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
+immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: single,
+undef: true, unused: true, strict: true, trailing: true, browser: true */
 
 // **Ply** is a lightweight JavaScript framework for creating
 // reusable UI components and managing application logic. It
@@ -103,7 +103,7 @@ Ply.core = (function ($) {
             var note = handle[0];
 
             if (listeners[note]) {
-                $.each(listeners[note], function(i) {
+                $.each(listeners[note], function (i) {
                     if (this.id === handle[1]) {
                         listeners[note].splice(i, 1);
                     }
@@ -129,15 +129,15 @@ Ply.core = (function ($) {
 
                 switch (type) {
                 case 'warn':
-                    console.warn(msg);
+                    window.console.warn(msg);
                     break;
 
                 case 'info':
-                    console.info(msg);
+                    window.console.info(msg);
                     break;
 
                 default:
-                    console.log(msg);
+                    window.console.log(msg);
                     break;
                 }
             }
@@ -189,10 +189,10 @@ Ply.core = (function ($) {
         // ### Debug on
         // Cache the value of debug. This is used by clients to determine
         // if debug mode is currently enabled.
-        debugOn: function () {
+        debugOn: (function () {
             // Coerce the value to a boolean.
             return !!debug;
-        }()
+        }())
 
     };
 

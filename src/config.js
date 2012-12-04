@@ -1,7 +1,7 @@
-/* global Ply, jQuery */
-/* jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
-immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: "single",
-undef: true, unused: true, strict: true, trailing: true */
+/*global Ply, jQuery */
+/*jshint bitwise: true, camelcase: true, curly: true, eqeqeq: true, forin: true,
+immed: true, indent: 4, latedef: true, newcap: true, nonew: true, quotmark: single,
+undef: true, unused: true, strict: true, trailing: true, browser: true */
 
 // The Config module provides hooks for many of the processes in Ply
 // and is meant to be modified/replaced by the user.
