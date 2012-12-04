@@ -18,7 +18,7 @@ undef: true, unused: true, strict: true, trailing: true */
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.4'
+    VERSION: '0.4.1'
 };
 
 // Define `core` module.

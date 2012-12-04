@@ -142,7 +142,7 @@ Ply.ajax = (function ($) {
             
             // Always increment `requestCount` on deferred object.
             deferred.data.requestCount++;
-            // Define property to store arguments for current requests response callbacks on deferrd's args obj.
+            // Define property to store arguments for current requests response callbacks on deferred's args obj.
             deferred.data.args[requestId] = {};
 
             // Add the `success`, `error` and `complete` callbacks to the deferred obj.
@@ -203,7 +203,6 @@ Ply.ajax = (function ($) {
 
                         // When responseCount matches the requestCount the deferred should be resolved.
                         if (deferred.data.responseCount === deferred.data.requestCount) {
-                            console.log(deferred);
                             deferred[deferred.data.result + 'With'](this);
                             deferreds.splice(deferreds.indexOf(deferred), 1);
                         }
