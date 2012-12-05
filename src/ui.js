@@ -261,7 +261,7 @@ Ply.ui = (function ($) {
         this.data = $.extend(true, {}, this.data, data);
 
         // Invoke `this.__bindElements`.
-        this.__bindObjects();
+        this.__bindElements();
 
         // Invoke `this.__bindPartials`.
         this.__bindPartials();
