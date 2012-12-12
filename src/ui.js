@@ -87,6 +87,8 @@ Ply.ui = (function ($) {
         // as `this.__bindElements`.
         __bindPartials: function () {
             
+            var self = this;
+            
             // #### Partials
             // If `this.__partials` is defined, autogenerate the partials.
             if (this.__partials) {
@@ -105,9 +107,11 @@ Ply.ui = (function ($) {
                         // Assign to the respective property of `this.partials` the result of
                         // registering a view with the given name, view, and defining view as
                         // its delegate.
-                        this.partials[id] = Ply.ui.register(this.__partials[id], {
-                            view: this.elements[id],
-                            delegate: this
+                        this.elements[id].each(function () {
+                            self.partials[id] = Ply.ui.register(self.__partials[id], {
+                                view: this,
+                                delegate: self
+                            });
                         });
                     }
                 }
