@@ -87,8 +87,6 @@ Ply.ui = (function ($) {
         // as `this.__bindElements`.
         __bindPartials: function () {
             
-            var self = this;
-            
             // #### Partials
             // If `this.__partials` is defined, autogenerate the partials.
             if (this.__partials) {
@@ -107,11 +105,9 @@ Ply.ui = (function ($) {
                         // Assign to the respective property of `this.partials` the result of
                         // registering a view with the given name, view, and defining view as
                         // its delegate.
-                        this.elements[id].each(function () {
-                            self.partials[id] = Ply.ui.register(self.__partials[id], {
-                                view: this,
-                                delegate: self
-                            });
+                        this.partials[id] = Ply.ui.register(this.__partials[id], {
+                            view: this.elements[id],
+                            delegate: this
                         });
                     }
                 }
@@ -456,13 +452,22 @@ Ply.ui = (function ($) {
         // view.
         start: function (name, o) {
 
+            var self = this,
+                views = [];
+
             // Log to the console the view's name.
             Ply.core.log('trying start: ' + name, 'info');
 
-            // Wrap the initialiazation in a try/catch block, and log any errors
+            // Wrap the initialization in a try/catch block, and log any errors
             // through `Ply.core`'s error logging mechanism.
             try {
-                return this.fn[name]($(o.view), o.options, o.data, o.delegate);
+                // To support multiple view instantiation iterate through jQuery obj.
+                $(o.view).each(function () {
+                    views.push(self.fn[name]($(this), o.options, o.data, o.delegate));
+                });
+                // If only one view was instantiated return view directly otherwise
+                // return the views array.
+                return views.length === 1 ? views[0] : views;
             }
             catch (ex) {
                 Ply.core.log(name + ' failed to start.');
