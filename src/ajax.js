@@ -102,7 +102,7 @@ Ply.ajax = (function ($) {
                 Ply.core.error(ex, 1);
             }
 
-            if (!options.inependent) {
+            if (!options.independent) {
                 // Add `request` to `requests` array.
                 requests.push(request);
 
