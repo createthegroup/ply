@@ -7,90 +7,21 @@ undef: true, unused: true, strict: true, trailing: true, browser: true */
 // catch all Ajax errors and log them in one place, extend the data sent to the server and
 // extend the API.
 
-// As you might expect the API supports all [jQuery.fn.ajax options](http://api.jquery.com/jQuery.ajax/) but also
-// provides an extra option `deferred` which allows a [jQuery.Deferred](http://api.jquery.com/category/deferred-object/)
-// object to be passed in to synchronize callbacks from multiple ajax requests.
-//
-// e.g.
-//
-// var deferred = new $.Deferred();
-//
-// Ply.ajax.request({
-//     deferred: deferred,
-//     url: '/foo',
-//     success: function () {
-//         console.log('foo success');
-//     },
-//     error: function () {
-//         console.log('foo error');
-//     }
-// });
-//
-// Ply.ajax.request({
-//     deferred: deferred,
-//     url: '/bar',
-//     success: function () {
-//         console.log('bar success');
-//     },
-//     error: function () {
-//         console.log('bar error');
-//     }
-// });
-//
-// The above example would log out `foo success` and `bar success` once *both* requests have
-// successfully returned. If one or more requests were to fail then it should be noted that
-// the error callbacks will be fired for all requests using that deferred object.
+// As you might expect the API supports all [jQuery.ajax options](http://api.jquery.com/jQuery.ajax/).
+
+// By default multiple calls to `Ply.ajax.request` from within the *same* call stack will automatically have
+// their `success` or `error` and `complete` callbacks synchronized. This allows DOM updates performed by callbacks
+// from separate requests to occur at the same time regardless of the response time. This functionality can be
+// switched off by passing `independent: true` into the options.
 
 // Define the `ajax` module.
 Ply.ajax = (function ($) {
 
     'use strict';
 
-    // ## Utility methods
-
-    // ### Polyfills
-
-    // Create a polyfill for `Array.prototype.indexOf` so we can use it
-    // natively when removing deferreds from deferreds array.
-
-    // Source code from: [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/indexOf).
-
-    if (!Array.prototype.indexOf) {
-        Array.prototype.indexOf = function (searchElement /*, fromIndex */) {
-            if (this == null) {
-                throw new TypeError();
-            }
-            var t = Object(this);
-            var len = t.length >>> 0;
-            if (len === 0) {
-                return -1;
-            }
-            var n = 0;
-            if (arguments.length > 1) {
-                n = Number(arguments[1]);
-                if (n != n) { // shortcut for verifying if it's NaN
-                    n = 0;
-                } else if (n != 0 && n != Infinity && n != -Infinity) {
-                    n = (n > 0 || -1) * Math.floor(Math.abs(n));
-                }
-            }
-            if (n >= len) {
-                return -1;
-            }
-            var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-            for (; k < len; k++) {
-                if (k in t && t[k] === searchElement) {
-                    return k;
-                }
-            }
-            return -1;
-        };
-    }
-
     // ## Private Variables
     
-    var guid = 0,
-        deferreds = [];
+    var requests = [];
 
     // ## Public Methods & Properties
 
@@ -98,20 +29,23 @@ Ply.ajax = (function ($) {
         
         request: function (url, options) {
 
+            var request = {
+                    promise: null,
+                    success: null,
+                    error: null,
+                    complete: null
+                },
+                _error;
+
             // support jQuery 1.0 and 1.5+ signature
             if (typeof url === 'object') {
                 options = url;
             }
             else {
-                options = options || {};
-                options.url = url;
+                $.extend(options, {
+                    url: url
+                });
             }
-                
-            var requestId = guid++,
-                deferred = options.deferred || new $.Deferred(),
-                success = options.success || $.noop,
-                error = options.error || $.noop,
-                complete = options.complete || $.noop;
 
             // Send along a `debug` parameter on all requests
             // if debug mode is enabled.
@@ -120,92 +54,47 @@ Ply.ajax = (function ($) {
                     debug: true
                 });
             }
-            
-            // If deferred isn't already in deferreds array push to array and extend deferred
-            // with `requestCount`, `responseCount`, `args` and `result` properties.
-            if ($.inArray(deferred, deferreds) === -1) {
-                deferreds.push(deferred);
-                $.extend(deferred, {
-                    data: {
-                        requestCount: 0,
-                        responseCount: 0,
-                        // Used to store success, error and callbacks arguments.
-                        args: {},
-                        // Determines whether deferred is resolved or rejected.
-                        result: 'resolve'
-                    }
-                });
-            }
-            
-            // Always increment `requestCount` on deferred object.
-            deferred.data.requestCount++;
-            // Define property to store arguments for current requests response callbacks on deferred's args obj.
-            deferred.data.args[requestId] = {};
 
-            // Add the `success`, `error` and `complete` callbacks to the deferred obj.
-            deferred
-                .done(function () {
-                    success.apply(this, deferred.data.args[requestId].success);
-                })
-                .fail(function () {
-                    error.apply(this, deferred.data.args[requestId].error);
-                })
-                .always(function () {
-                    complete.apply(this, deferred.data.args[requestId].complete);
-                });
-            
+            // Augment error callback to facilitate error logging.
+            _error = options.error;
+            options.error = function (jqXHR, textStatus, errorThrown) {
+
+                // On error, log an AjaxError to the the `console`.
+                Ply.core.log('AjaxError: ' + textStatus + ' - ' + options.url, 'warn');
+
+                // Call the `error` method on the core module. Will post the error data
+                // to the logging server.
+                Ply.core.error({
+                    name: 'AjaxError',
+                    // Send the status code in the message.
+                    message: 'Status: ' + textStatus,
+                    description: 'URL: ' + options.url
+                }, 1);
+
+                // Call the `error` callback function if one is provided.
+                if (typeof _error === 'function') {
+                    _error(jqXHR, textStatus, errorThrown);
+                }
+
+            };
+
+            // Remove the `success`, `error` and `complete` callbacks from the
+            // options object as they'll be added to the promise after the ajax
+            // request is made.
+            if (!options.independent) {
+                request.success = options.success;
+                request.error = options.error;
+                request.complete = options.complete;
+                delete options.success;
+                delete options.error;
+                delete options.complete;
+            }
+
             // Surround ajax request in a try/catch block to catch any possible errors.
             try {
-                // We return the result of calling `$.ajax`, an XHR object, so clients
+                // We return the result of calling `$.ajax`, an jqXHR object, so clients
                 // can call XHR methods on the object, e.g. `abort()`.
-                return $.ajax($.extend(options, {
-                    success: function (data, textStatus, jqXHR) {
-
-                        // Store arguments on deferred's args property to later map to success callback.
-                        deferred.data.args[requestId].success = [data, textStatus, jqXHR];
-                        
-                        // Even though the request was successful error arguments must be defined in case
-                        // another request on the deferred object fails causing the deferred to be rejected.
-                        deferred.data.args[requestId].error = [jqXHR, textStatus, 'Ply.ajax - Deferred Rejected'];
-
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-
-                        // Store arguments on deferred's args property to later map to error callback.
-                        deferred.data.args[requestId].error = [jqXHR, textStatus, errorThrown];
-
-                        // A request on the deferred has failed so we need to set the result to rejected.
-                        deferred.data.result = 'reject';
-
-                        // On error, log an AjaxError to the the `console`.
-                        Ply.core.log('AjaxError: ' + textStatus + ' - ' + options.url, 'warn');
-
-                        // Call the `error` method on the core module. Will post the error data
-                        // to the logging server.
-                        Ply.core.error({
-                            name: 'AjaxError',
-                            // Send the status code in the message.
-                            message: 'Status: ' + textStatus,
-                            description: 'URL: ' + options.url
-                        }, 1);
-
-                    },
-                    complete: function (jqXHR, textStatus) {
-
-                        // The complete callback is always run so increment `responseCount`.
-                        deferred.data.responseCount++;
-                        
-                        // Store arguments on deferred's args property to later map to complete callback.
-                        deferred.data.args[requestId].complete = [jqXHR, textStatus];
-
-                        // When responseCount matches the requestCount the deferred should be resolved.
-                        if (deferred.data.responseCount === deferred.data.requestCount) {
-                            deferred[deferred.data.result + 'With'](this);
-                            deferreds.splice(deferreds.indexOf(deferred), 1);
-                        }
-
-                    }
-                }));
+                request.promise = $.ajax(options);
             }
             // Log and post any error that may have occurred.
             catch (ex) {
@@ -213,6 +102,40 @@ Ply.ajax = (function ($) {
                 Ply.core.error(ex, 1);
             }
 
+            if (!options.inependent) {
+                // Add `request` to `requests` array.
+                requests.push(request);
+
+                // `$.when` only needs to be run once per call stack.
+                if (requests.length === 1) {
+                    // `setTimeout` is used to move `$.when` to new call stack allowing multiple
+                    // `Ply.ajax.request` calls within the same stack to be synchronized.
+                    setTimeout(function () {
+
+                        $.when.apply($, $.map(requests, function (request) {
+                            return request.promise;
+                        }))
+                        .always(function () {
+                            
+                            // Iterate over the `requests` array and add the `success`, `error` and `complete`
+                            // callbacks to the appropriate promise.
+                            for (var i = 0, len = requests.length; i < len; i++) {
+                                requests[i].promise
+                                    .done(requests[i].success)
+                                    .fail(requests[i].error)
+                                    .always(requests[i].complete);
+                            }
+
+                            // reset `requests` array ready for new call stack.
+                            requests = [];
+
+                        });
+
+                    }, 0);
+                }
+            }
+
+            return request.promise;
         }
 
     };
