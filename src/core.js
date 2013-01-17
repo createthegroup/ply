@@ -18,7 +18,7 @@ undef: true, unused: true, strict: true, trailing: true, browser: true */
 // Declare global namespace and assign version number.
 
 window.Ply = {
-    VERSION: '0.4.5'
+    VERSION: '0.4.7'
 };
 
 // Define `core` module.
@@ -44,7 +44,9 @@ Ply.core = (function ($) {
         notify: function (note, sender, data) {
 
             // Cache listeners array or create a new array, assign, and cache it.
-            var list = listeners[note] || (listeners[note] = []),
+            // #2 Make sure cached array is a clone and not passed by reference
+            // using `Array.prototype.slice`
+            var list = listeners[note] ? listeners[note].slice(0) : (listeners[note] = []),
                 // Create loop variables.
                 i = 0,
                 len = list.length;
@@ -54,6 +56,7 @@ Ply.core = (function ($) {
                 list[i].handler.call(list[i].listener, note, sender, data);
             }
 
+            return;
         },
 
         // ### Listen
@@ -65,24 +68,7 @@ Ply.core = (function ($) {
 
             // Cache the notification's listeners if it exists or create and cache
             // a new array otherwise.
-            var list  = listeners[notification] || (listeners[notification] = []),
-                // Split the notification on whitespace. Clients can listen to
-                // multiple notifications by passing in a string with the notification
-                // names split by whitespace.
-                notes = notification.split(/\s/),
-                // Create loop variables.
-                len = notes.length,
-                i = 0;
-
-            // If the notification name contains whitespace,
-            // listen on each particular notification (segment).
-            if (len > 1) {
-                for (; i < len; i++) {
-                    this.listen(notes[i], handler, listener);
-                }
-
-                return;
-            }
+            var list = listeners[notification] || (listeners[notification] = []);
 
             // Add the listener and handler function to the notifications array.
             list.push({
@@ -90,7 +76,7 @@ Ply.core = (function ($) {
                 handler: handler,
                 listener: listener
             });
-            
+
             // return handle used to ignore.
             return [notification, id];
         },
@@ -100,14 +86,16 @@ Ply.core = (function ($) {
         // Clients should pass in the returned handle from `Ply.core.listen`.
         ignore: function (handle) {
             
-            var note = handle[0];
+            var note = handle[0],
+                len = listeners[note] ? listeners[note].length : 0,
+                i = 0;
 
-            if (listeners[note]) {
-                $.each(listeners[note], function (i) {
-                    if (this.id === handle[1]) {
-                        listeners[note].splice(i, 1);
-                    }
-                });
+            // loop through handlers and remove if id matches.
+            for (; i < len; i++) {
+                if (listeners[note][i].id === handle[1]) {
+                    listeners[note].splice(i, 1);
+                    break;
+                }
             }
 
             return;
