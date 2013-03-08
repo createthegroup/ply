@@ -61,10 +61,11 @@ Ply.ui = (function ($) {
         __bindElements: function () {
 
             // #### Elements
+            // Create an empty elements hash to store the elements.
+            this.elements = {};
+
             // If `this.__elements` is defined, autogenerate the elements.
             if (this.__elements) {
-                // Create an empty elements hash to store the elements.
-                this.elements = {};
 
                 // Iterate over the own properties of `this.__elements`.
                 for (var id in this.__elements) {
@@ -86,13 +87,13 @@ Ply.ui = (function ($) {
         // Declare method for binding partials. Method is created for same purposes
         // as `this.__bindElements`.
         __bindPartials: function () {
-            
+
             // #### Partials
+            // Create empty hash to store partials.
+            this.partials = {};
+
             // If `this.__partials` is defined, autogenerate the partials.
             if (this.__partials) {
-
-                // Create empty hash to store partials.
-                this.partials = {};
 
                 // Iterate over the own properties of `this.__partials` which have
                 // corresponding elements which matched at least one element. Ensures
@@ -118,14 +119,14 @@ Ply.ui = (function ($) {
         // Declare method for binding notifications. Method is created for same purposes
         // as `this.__bindElements` and `this.__bindPartials`.
         __bindNotifications: function () {
-            
+
             // #### Notifications
+            // Create empty hash to store notifications handles used to ignore
+            // notifications when no longer required.
+            this.notifications = {};
+
             // If `this.__notifications` is defined, autogenerate the notifications.
             if (this.__notifications) {
-
-                // Create empty hash to store notifications handles used to ignore
-                // notifications when no longer required.
-                this.notifications = {};
 
                 // Iterate over the own properties of `this.__notifications`.
                 for (var note in this.__notifications) {
@@ -143,8 +144,11 @@ Ply.ui = (function ($) {
         // removed from the DOM.
         __destroyView: function () {
 
-            var id;
-            
+            var note,
+                id,
+                i,
+                len;
+
             // #### Destroy
             // If `this.__destroy` has been defined by the view invoke it here.
             if ($.isFunction(this.__destroy)) {
@@ -153,43 +157,51 @@ Ply.ui = (function ($) {
                 this.__destroy();
             }
 
-            // Destroy partials.
-            for (id in this.partials) {
-                if (this.partials.hasOwnProperty(id)) {
-                    this.partials[id].__destroyView();
+            // Ignore all notifications bound using the `__notifications` object.
+            // This ensures notifications aren't called multiple times in cases where
+            // the view is re-registered and that all references to the view object are
+            // removed (assuming events have been unbound) so it can safely be garbage
+            // collected by the browser.
+            for (note in this.notifications) {
+                if (this.notifications.hasOwnProperty(note)) {
+                    Ply.core.ignore(this.notifications[note]);
+                    delete this.notifications[note];
                 }
             }
 
             // Delete delegates reference to `this`.
-            if (this.delegate && this.delegate.partials) {
+            if (this.delegate) {
+                partials:
                 for (id in this.delegate.partials) {
                     if (this.delegate.partials.hasOwnProperty(id)) {
-                        if (this.delegate.partials[id] === this) {
-                            delete this.delegate.partials[id];
+                        for (i = 0, len = this.delegate.partials[id].length; i < len; i++) {
+                            if (this.delegate.partials[id][i] === this) {
+                                this.delegate.partials[id].splice(i, 1);
+                                if (this.delegate.partials[id].length === 0) {
+                                    delete this.delegate.partials[id];
+                                }
+                                break partials;
+                            }
                         }
                     }
                 }
             }
 
             // Delete delegates reference to `this.view`.
-            if (this.delegate && this.delegate.elements) {
+            if (this.delegate) {
+                elements:
                 for (id in this.delegate.elements) {
                     if (this.delegate.elements.hasOwnProperty(id)) {
-                        if (this.delegate.elements[id][0] === this.view[0]) {
-                            delete this.delegate.elements[id];
+                        for (i = 0, len = this.delegate.elements[id].length; i < len; i++) {
+                            if (this.delegate.elements[id][i] === this.view[0]) {
+                                this.delegate.elements[id] = this.delegate.elements[id].not(this.delegate.elements[id][i]);
+                                if (this.delegate.elements[id].length === 0) {
+                                    delete this.delegate.elements[id];
+                                }
+                                break elements;
+                            }
                         }
                     }
-                }
-            }
-            
-            // Ignore all notifications bound using the `__notifications` object.
-            // This ensures notifications aren't called multiple times in cases where
-            // the view is re-registered and that all references to the view object are
-            // removed (assuming events have been unbound) so it can safely be garbage
-            // collected by the browser.
-            for (var note in this.notifications) {
-                if (this.notifications.hasOwnProperty(note)) {
-                    Ply.core.ignore(this.notifications[note]);
                 }
             }
 
@@ -199,7 +211,7 @@ Ply.ui = (function ($) {
         __getOption: function (option) {
 
             return getOptionOrData.call(this, option, 'options');
-            
+
         },
 
         // See setOptionOrData
@@ -289,7 +301,7 @@ Ply.ui = (function ($) {
 
     // `type` can be either 'options' or 'data'.
     function getOptionOrData(name, type) {
-        
+
         var view = this,
             value = this[type][name];
 
@@ -465,9 +477,7 @@ Ply.ui = (function ($) {
                 $(o.view).each(function () {
                     views.push(self.fn[name]($(this), o.options, o.data, o.delegate));
                 });
-                // If only one view was instantiated return view directly otherwise
-                // return the views array.
-                return views.length === 1 ? views[0] : views;
+                return views;
             }
             catch (ex) {
                 Ply.core.log(name + ' failed to start.');
