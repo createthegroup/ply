@@ -58,7 +58,7 @@ Ply.config = (function ($) {
             // created on this object will be available to every view created
             // using `Ply.ui.define`.
             base: {
-                
+
                 // Calling `this.refreshView()` and passing in the views html
                 // response from an ajax call will automatically update the DOM
                 // and re-register the view and its partials whilst persisting
@@ -78,11 +78,27 @@ Ply.config = (function ($) {
                         delegate: this.delegate
                     });
 
-                    Ply.core.notify('view-refreshed', view);
+                    Ply.core.notify('view-refreshed', view[0]);
 
                     return view;
                 },
-                
+
+                // Safely converts html string to jQuery object
+                //
+                // e.g.
+                // just using the jQuery factory function on its own will return undesirable textNodes:
+                // $('<div /> <div /> <!-- view -->') // [<div>​​, #text, <div>​, #text, #comment]
+                //
+                // Whereas `this.cleanHTML` will return just the html nodes:
+                // this.cleanHTML('<div /> <div /> <!-- view -->'); // [<div>​​, <div>]
+                cleanHTML: function (html) {
+
+                    return $('<div />')
+                        .html(html)
+                            .children();
+
+                },
+
                 // NOTE: The following helper elements require the scripts to be
                 // included at the bottom of the page.
                 window: $(window),
@@ -127,43 +143,30 @@ Ply.config = (function ($) {
                 // #### Example
                 // If a truthy value (in this case, an object or `true`) is passed in for
                 // options.modal.
-                if (options.modal) {
+                if (options.modal && options.view.length) {
 
-                    // Make sure options.modal is an object so we can naively access
-                    // properties on it.
+                    // Make sure options.modal is an object so we can naively access properties on it.
                     options.modal = typeof options.modal === 'object' ? options.modal : {};
+                    options.modal.className = options.modal.className ? options.modal.className : '';
+                    options.modal.className += ' modal-' + name;
+                    options.modal.overlayClassName = options.modal.overlayClassName ? options.modal.overlayClassName : '';
+                    options.modal.overlayClassName += ' modal-overlay-' + name;
 
-                    // Create a new modal view by calling $.modal (using SimpleModal in this example)
-                    // and pass in the view object as the modal element.
-                    $.modal(options.view, {
-                        // Pass in a predefined set of accessible properties
-                        // on the modal option to the plugin. Done a) to abstract
-                        // out the library in use underneath, b) to limit the
-                        // overridable properties of modal.
-                        containerId: options.modal.containerId,
-                        dataClass: options.modal.dataClass,
-                        maxWidth: options.modal.maxWidth || 300,
-                        maxHeight: options.modal.maxHeight,
-                        updateOnOpen: options.modal.updateOnOpen,
-                        onShow: function (dialog) {
-
-                            // When the modal view is shown, rebind `options.view`
-                            // which will become `this.view` on the view object to
-                            // the `data` element of the modal (the modal's cotnent).
-                            options.view = dialog.data;
-
-                            // Call `Ply.ui.start` explicitly since we return out of this method.
-                            Ply.ui.start(name, options);
-
-                            // Put in modal boilerplate code, e.g. binding to close the modal.
-                            dialog.data.delegate('.modal-close', 'click', function (e) {
-                                e.preventDefault();
-
-                                $.modal.close();
-                            });
-                        }
+                    // bind to `modalBeforeOpen` event to start ply view
+                    $(document).one('modalBeforeOpen.' + name, function () {
+                        options.options = $.extend({}, options.options, {
+                            inModal: true
+                        });
+                        // Call `Ply.ui.start` explicitly since we return out of this method.
+                        Ply.core.notify('modal-view-registered', Ply.ui.start(name, options));
                     });
 
+                    // Create a new modal view by calling `$.modal.open`
+                    // and pass in the view object as the modal element.
+                    $.modal.open(options.view, options.modal);
+
+                    // Return false from this method to avoid `Ply.ui.start` getting called for us.
+                    return false;
                 }
 
                 // Return false from this method to avoid `Ply.ui.start` getting called for us.
