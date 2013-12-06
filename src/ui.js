@@ -140,6 +140,51 @@ Ply.ui = (function ($) {
 
         },
 
+        // Declare method for binding events. Method is created for same purposes
+        // as `this.__bindElements`, `this.__bindPartials` and `this.__bindNotifications.
+        // An example key from `this.__events` could be 'click closeButton'
+        // which would refer to the click event for `this.objects.closeButton`
+        // an example value could be 'close', which would refer to the function `this.close`
+        __bindEvents: function () {
+
+            var keys,
+                elem,
+                handler;
+
+            // #### Events
+
+            // If `this.__events` is defined, autogenerate the events.
+            if (this.__events) {
+
+                // Iterate over the own properties of `this.__events`.
+                for (var id in this.__events) {
+                    if (this.__events.hasOwnProperty(id)) {
+
+                        // Split the id into the handler and the element(s)
+                        keys = id.split(' ');
+                        // and asign them accordingly
+                        handler = keys[0];
+                        elem = keys[1];
+
+                        // If that element exists
+                        if (this.elements[elem] && this.elements[elem].length) {
+                            // Attach the event to it
+                            this.elements[elem].on(handler, (function (callback, self) {
+                                return function (e) {
+                                    // Within the callback, `this` refers to the Ply view,
+                                    // not the element the event is attached to,
+                                    // so we will pass that element in as a second argument
+                                    // for easy access
+                                    self[callback](e, e.target);
+                                };
+                            }(this.__events[id], this)));
+                        }
+                    }
+                }
+            }
+
+        },
+
         // Declare method to destroy view. `this.__destroyView` is automatically called when view element is
         // removed from the DOM.
         __destroyView: function () {
@@ -204,6 +249,8 @@ Ply.ui = (function ($) {
                     }
                 }
             }
+
+            // Events aren't stored anywhere other than on the nodes they're bound to, so these will be removed by $.cleanData
 
         },
 
@@ -274,6 +321,9 @@ Ply.ui = (function ($) {
 
         // Invoke `this.__bindElements`.
         this.__bindElements();
+
+        // Invoke `this.__bindEvents`.
+        this.__bindEvents();
 
         // Invoke `this.__bindPartials`.
         this.__bindPartials();
