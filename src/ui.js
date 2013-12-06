@@ -166,19 +166,16 @@ Ply.ui = (function ($) {
                         handler = keys[0];
                         elem = keys[1];
 
-                        // If that element exists
-                        if (this.elements[elem] && this.elements[elem].length) {
-                            // Attach the event to it
-                            this.elements[elem].on(handler, (function (callback, self) {
-                                return function (e) {
-                                    // Within the callback, `this` refers to the Ply view,
-                                    // not the element the event is attached to,
-                                    // so we will pass that element in as a second argument
-                                    // for easy access
-                                    self[callback](e, e.target);
-                                };
-                            }(this.__events[id], this)));
-                        }
+                        // Attach the event to the elem, but delegate it to this.view
+                        this.view.on(handler, this.__elements[elem], (function (callback, self) {
+                            return function (e) {
+                                // Within the callback, `this` refers to the Ply view,
+                                // not the element the event is attached to,
+                                // so we will pass that element in as a second argument
+                                // for easy access
+                                self[callback](e, e.target);
+                            };
+                        }(this.__events[id], this)));
                     }
                 }
             }
